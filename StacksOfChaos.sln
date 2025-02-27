@@ -5,6 +5,10 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SOCData", "SOCData\SOCData.sqlproj", "{AC95D220-E981-4C78-B093-C85FEA89F079}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCMobile", "SOCMobile\SOCMobile.csproj", "{F1DADD02-8DF8-41BC-B562-3F13EC163C2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCWeb", "SOCWeb\SOCWeb.csproj", "{27DC0266-840E-42CC-A29E-65400C3EBEDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +21,14 @@ Global
 		{AC95D220-E981-4C78-B093-C85FEA89F079}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC95D220-E981-4C78-B093-C85FEA89F079}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC95D220-E981-4C78-B093-C85FEA89F079}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F1DADD02-8DF8-41BC-B562-3F13EC163C2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1DADD02-8DF8-41BC-B562-3F13EC163C2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1DADD02-8DF8-41BC-B562-3F13EC163C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1DADD02-8DF8-41BC-B562-3F13EC163C2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27DC0266-840E-42CC-A29E-65400C3EBEDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27DC0266-840E-42CC-A29E-65400C3EBEDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27DC0266-840E-42CC-A29E-65400C3EBEDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27DC0266-840E-42CC-A29E-65400C3EBEDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
