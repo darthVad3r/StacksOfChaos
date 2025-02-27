@@ -7,9 +7,9 @@ namespace SOCApi.Controllers
     [ApiController]
     public class TitleController : ControllerBase
     {
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ILogger<TitleController> _logger;
 
-        public TitleController(ILogger<WeatherForecastController> logger)
+        public TitleController(ILogger<TitleController> logger)
         {
             _logger = logger;
         }
@@ -20,5 +20,4 @@ namespace SOCApi.Controllers
             return null;
         }
     }
-}
 }
