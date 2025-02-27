@@ -1,0 +1,6 @@
+@SOCApi_HostAddress = http://localhost:5073
+
+GET {{SOCApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
