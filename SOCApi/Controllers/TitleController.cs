@@ -15,7 +15,7 @@ namespace SOCApi.Controllers
         }
 
         [HttpGet(Name = "GetTitle")]
-        public IEnumerable<WeatherForecast> Get()
+        public IEnumerable<TitleController> Get()
         {
             return null;
         }

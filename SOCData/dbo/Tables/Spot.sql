@@ -1,0 +1,4 @@
+﻿CREATE TABLE [dbo].[Spot] (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    SpotName NVARCHAR(255) NULL
+);
