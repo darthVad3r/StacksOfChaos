@@ -32,7 +32,7 @@ namespace SOCApi.Controllers
                 // Implement the logic to search for titles with the search string
                 var titles = SearchTitles(searchString);
 
-                if (titles == null || !titles.Any())
+                if (titles == null || titles.Count == 0)
                 {
                     _logger.LogInformation("No titles found for search string {SearchString}", searchString);
                     return NotFound("No titles found");
