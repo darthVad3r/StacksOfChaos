@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SOCApi.Models;
 
 namespace SOCApi.Controllers
 {
@@ -19,11 +20,15 @@ namespace SOCApi.Controllers
         {
             try
             {
-                if(string.IsNullOrEmpty(searchString))
+                if (string.IsNullOrEmpty(searchString))
                 {
                     _logger.LogError("Search string is empty");
                     return Enumerable.Empty<TitleController>();
                 }
+
+                // Implement logic to verify that the search string is valid
+                // Implment the logic to search for titles with the search string
+                // Call the service to get the title information
 
                 return null;
             }
