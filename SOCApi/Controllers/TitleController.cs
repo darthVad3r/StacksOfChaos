@@ -30,7 +30,7 @@ namespace SOCApi.Controllers
                     _logger.LogError("Search string is empty");
                     return BadRequest("Search string is empty");
                 }
-
+                // Implement logic to verify that the search string is valid
                 // Implement the logic to search for titles with the search string
                 var titles = SearchTitles(searchString);
 
