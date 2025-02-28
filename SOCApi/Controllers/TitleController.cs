@@ -32,7 +32,7 @@ namespace SOCApi.Controllers
                 }
 
                 // Implement the logic to search for titles with the search string
-                var titles = SearchTitles(searchString); // Assuming SearchTitles is a method that returns a list of titles
+                var titles = SearchTitles(searchString);
 
                 if (titles == null || !titles.Any())
                 {
@@ -47,6 +47,13 @@ namespace SOCApi.Controllers
                 _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", searchString);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while searching for titles");
             }
+        }
+
+        private List<string> SearchTitles(string searchString)
+        {
+            // Implement the logic to search for titles with the search string
+            // This is a placeholder implementation
+            return new List<string> { "Title1", "Title2", "Title3" };
         }
     }
 }
