@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using SOCApi.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace SOCApi.Controllers
 {
@@ -15,12 +13,12 @@ namespace SOCApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetTitleInformation")]
         /// <summary>
         /// Gets the title information based on the provided search string.
         /// </summary>
         /// <param name="searchString">The search string to look for titles.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>
+        [HttpGet(Name = "GetTitleInformation")]
         public IActionResult GetTitleInformation([FromQuery] string searchString)
         {
             try
