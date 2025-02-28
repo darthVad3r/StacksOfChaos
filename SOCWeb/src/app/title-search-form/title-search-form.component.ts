@@ -7,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrl: './title-search-form.component.css'
 })
 export class TitleSearchFormComponent {
+  inputText: string = '';
 
+  onSubmit() {
+    console.log('Search for: ' + this.inputText);
+  }
 }
