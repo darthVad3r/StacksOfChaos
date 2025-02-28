@@ -15,9 +15,23 @@ namespace SOCApi.Controllers
         }
 
         [HttpGet(Name = "GetTitle")]
-        public IEnumerable<TitleController> Get()
+        public IEnumerable<TitleController> GetTitleInformation(string searchString)
         {
-            return null;
+            try
+            {
+                if(string.IsNullOrEmpty(searchString))
+                {
+                    _logger.LogError("Search string is empty");
+                    return Enumerable.Empty<TitleController>();
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", searchString);
+                return Enumerable.Empty<TitleController>();
+            }
         }
     }
 }
