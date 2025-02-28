@@ -15,27 +15,37 @@ namespace SOCApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetTitle")]
-        public IEnumerable<TitleController> GetTitleInformation(string searchString)
+        [HttpGet(Name = "GetTitleInformation")]
+        /// <summary>
+        /// Gets the title information based on the provided search string.
+        /// </summary>
+        /// <param name="searchString">The search string to look for titles.</param>
+        /// <returns>An IActionResult containing the search results or an error message.</returns>
+        public IActionResult GetTitleInformation([FromQuery] string searchString)
         {
             try
             {
                 if (string.IsNullOrEmpty(searchString))
                 {
                     _logger.LogError("Search string is empty");
-                    return Enumerable.Empty<TitleController>();
+                    return BadRequest("Search string is empty");
                 }
 
-                // Implement logic to verify that the search string is valid
-                // Implment the logic to search for titles with the search string
-                // Call the service to get the title information
+                // Implement the logic to search for titles with the search string
+                var titles = SearchTitles(searchString); // Assuming SearchTitles is a method that returns a list of titles
 
-                return null;
+                if (titles == null || !titles.Any())
+                {
+                    _logger.LogInformation("No titles found for search string {SearchString}", searchString);
+                    return NotFound("No titles found");
+                }
+
+                return Ok(titles);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", searchString);
-                return Enumerable.Empty<TitleController>();
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while searching for titles");
             }
         }
     }
