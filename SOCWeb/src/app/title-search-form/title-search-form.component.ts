@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { TitleSearchService } from './title-search-service.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, Inject } from '@angular/core';
+import { TitleSearchService } from './title-search-service';
 
 @Component({
   selector: 'app-title-search-form',
@@ -9,17 +9,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class TitleSearchFormComponent {
   inputText: string = '';
-  titles: string[] = [];
+  titles: string[];
 
-  constructor(private titleSearchService: TitleSearchService) { }
+  constructor(@Inject(TitleSearchService) private titleSearchService: TitleSearchService) {
+    this.inputText = '';
+    this.titles = [];
+  }
 
   onSubmit() {
+    console.log("Hello World");
   this.titleSearchService.searchTitles(this.inputText).subscribe({
     next: (response: { titles: string[] }) => {
       this.titles = response.titles;
     },
     error: (error: HttpErrorResponse) => {
-      console.log('Error: ', error.message);
+      console.error(`Error occurred while searching for "${this.inputText}": `, error.message);
     }
   });
 }}
