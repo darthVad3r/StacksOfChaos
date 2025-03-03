@@ -9,13 +9,12 @@ import { FormsModule } from '@angular/forms';
 @NgModule({
   declarations: [
     AppComponent,
-    TitleSearchFormComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule
-
+    FormsModule,
+    TitleSearchFormComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
