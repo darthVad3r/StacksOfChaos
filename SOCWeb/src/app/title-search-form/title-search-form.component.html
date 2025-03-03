@@ -1,9 +1,10 @@
 <p>title-search-form works!</p>
 
-<input
-       type="text"
-       name="TitleSearch"
-       placeholder="Enter Text Here"
-       [(ngModel)]="inputText"
-       />
-<button class="btn" (click)="onSubmit()">Search</button>
+<form (ngSubmit)="onSubmit()">
+  <input type="text"
+         name="TitleSearch"
+         placeholder="Enter Text Here"
+         required
+         [(ngModel)]="inputText" />
+  <button class="btn" type="submit">Search</button>
+</form>
