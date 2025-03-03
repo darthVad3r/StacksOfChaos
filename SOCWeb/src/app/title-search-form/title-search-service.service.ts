@@ -5,12 +5,12 @@ import { Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class TitleSearchServiceService {
-  private apiUrl = 'http://localhost:8080/api/v1/titles';  // Update later with an actual api endpoint
+export class TitleSearchService {
+  private apiUrl = 'http://localhost:5073/api/titlesearch'; // Update with the actual API endpoint
 
   constructor(private http: HttpClient) { }
 
-  searchTitle(query: string): Observable<any> {
+  searchTitles(query: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}?query=${query}`);
   }
 }

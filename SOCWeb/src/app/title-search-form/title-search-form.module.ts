@@ -6,7 +6,7 @@ import { TitleSearchFormComponent } from './title-search-form.component';
 
 @NgModule({
   declarations: [
-    TitleSearchFormComponent
+
   ],
   imports: [
     CommonModule
