@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SOCApi.Services;
+using SOCApi.Models;
+using System.Net.Http.Headers;
 
 namespace SOCApi.Controllers
 {
@@ -26,26 +28,28 @@ namespace SOCApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetTitleInformation([FromQuery] string searchString)
+        public async Task<IActionResult> GetTitleInformation([FromQuery] string searchString)
         {
             try
             {
                 if (string.IsNullOrEmpty(searchString))
                 {
                     _logger.LogError("Search string is empty");
-                    return BadRequest("Search string cannot empty");
+                    return BadRequest("Search string cannot be empty");
                 }
                 // Implement logic to verify that the search string is valid
                 // Implement the logic to search for titles with the search string
-                var titles = _bookSearchService.SearchTitlesAsync(searchString).Result;
+                var title = await _bookSearchService.SearchTitlesAsync(searchString);
 
-                if (titles == null || titles.Count == 0)
+                if (title == null || title.Docs.Length == 0)
                 {
                     _logger.LogInformation("No titles found for search string {SearchString}", searchString);
                     return NotFound("No titles found");
                 }
 
-                return Ok(titles);
+                var titleOutput = title.Docs[0].AuthorName;
+
+                return Ok(titleOutput);
             }
             catch (Exception ex)
             {

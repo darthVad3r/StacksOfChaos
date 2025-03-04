@@ -15,12 +15,12 @@ namespace SOCApi.Services
             _httpClientFactory = httpClientfactory;
             _logger = logger;
         }
-        public async Task<List<Title>> SearchTitlesAsync(string searchString)
+        public async Task<Title?> SearchTitlesAsync(string searchString)
         {
             try
             {
                 var title = await FetchTitleDetailsAsync(searchString);
-                return new List<Title> { title };
+                return title;
             }
             catch (Exception ex)
             {
