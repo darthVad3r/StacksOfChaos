@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SOCApi.Services;
 
 namespace SOCApi.Controllers
 {
@@ -7,9 +8,11 @@ namespace SOCApi.Controllers
     public class TitleController : ControllerBase
     {
         private readonly ILogger<TitleController> _logger;
+        private readonly BookSearchService _bookSearchService;
 
-        public TitleController(ILogger<TitleController> logger)
+        public TitleController(ILogger<TitleController> logger, BookSearchService bookSearchService)
         {
+            _bookSearchService = bookSearchService;
             _logger = logger;
         }
 
@@ -30,11 +33,11 @@ namespace SOCApi.Controllers
                 if (string.IsNullOrEmpty(searchString))
                 {
                     _logger.LogError("Search string is empty");
-                    return BadRequest("Search string is empty");
+                    return BadRequest("Search string cannot empty");
                 }
                 // Implement logic to verify that the search string is valid
                 // Implement the logic to search for titles with the search string
-                var titles = SearchTitles(searchString);
+                var titles = _bookSearchService.SearchTitlesAsync(searchString).Result;
 
                 if (titles == null || titles.Count == 0)
                 {
@@ -49,13 +52,6 @@ namespace SOCApi.Controllers
                 _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", searchString);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while searching for titles");
             }
-        }
-
-        private List<string> SearchTitles(string searchString)
-        {
-            // Implement the logic to search for titles with the search string
-            // This is a placeholder implementation
-            return new List<string> { "Title1", "Title2", "Title3" };
         }
     }
 }
