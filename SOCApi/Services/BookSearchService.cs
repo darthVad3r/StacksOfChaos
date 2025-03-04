@@ -50,4 +50,5 @@ namespace SOCApi.Services
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.Add("User-Agent", "SOCApi");
         }
+    }
 }
