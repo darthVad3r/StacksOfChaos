@@ -6,11 +6,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class TitleSearchService {
-  private apiUrl = 'http://localhost:5073/api/titlesearch'; // Update with the actual API endpoint
+  private apiUrl = 'https://localhost:5001/api/title'; // Update with the actual API endpoint
 
-  constructor(private http: HttpClient) { }
+  constructor(private https: HttpClient) { }
 
   searchTitles(query: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?query=${query}`);
+    return this.https.post<any>(`${this.apiUrl}?query=${query}`, {});
   }
 }
