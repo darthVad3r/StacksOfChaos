@@ -37,8 +37,7 @@ namespace SOCApi.Controllers
                     _logger.LogError("Search string is empty");
                     return BadRequest("Search string cannot be empty");
                 }
-                // Implement logic to verify that the search string is valid
-                // Implement the logic to search for titles with the search string
+                // Implement logic to verify that the search string is valid and does not pose a security risk.
                 var title = await _bookSearchService.SearchTitlesAsync(searchString);
 
                 if (title == null || title.Docs.Length == 0)
@@ -50,6 +49,7 @@ namespace SOCApi.Controllers
                 var titleOutput = title.Docs[0].AuthorName;
 
                 return Ok(titleOutput);
+
             }
             catch (Exception ex)
             {

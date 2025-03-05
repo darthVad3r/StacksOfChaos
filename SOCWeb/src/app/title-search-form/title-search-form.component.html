@@ -1,4 +1,4 @@
-<form>
+<form (ngSubmit)="searchForTitle()">
   <label for="titleSearch">
     Search For a Title:
     <input
@@ -8,11 +8,11 @@
       name="titleSearch"
       [(ngModel)]="inputText"
     />
-    <button type="button" (click)="searchForTitle()">Search</button>
+    <button type="submit">Search</button>
   </label>
 </form>
-<ul>
-  @for(title of titles; track title){
-    <li>{{title}}</li>
-  }
-</ul>
+<h2>Titles</h2>
+<p>{{titleString}}</p>
+@if(this.errorMessage) {
+  <p>Sorry, title not found.  Please try again.</p>
+}

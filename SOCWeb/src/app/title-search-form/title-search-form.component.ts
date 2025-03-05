@@ -12,24 +12,27 @@ import { FormsModule } from '@angular/forms';
 export class TitleSearchFormComponent {
   inputText: string = '';
   titles: string[] = [];
+  titleString: string = '';
+  errorMessage: string = '';
 
   constructor(
     @Inject(TitleSearchService) private titleSearchService: TitleSearchService
   ) {}
 
   searchForTitle() {
-    alert(this.inputText);
     this.titleSearchService.searchTitles(this.inputText).subscribe({
-      next: (response: { titles: string[] }) => {
-        this.titles = response.titles;
-
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error(
-          `Error occurred while searching for "${this.inputText}": `,
-          error.message
-        );
-      },
+      next: this.handleSearchSuccess.bind(this),
+      error: this.handleSearchError.bind(this),
     });
+  }
+
+  handleSearchSuccess(titles: string[]) {
+    this.titles = titles;
+    this.titleString=titles.toString();
+  }
+
+  handleSearchError(error: HttpErrorResponse) {
+    console.error(`An error occurred: ${error.message}`);
+    this.errorMessage = error.message;
   }
 }

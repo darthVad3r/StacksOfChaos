@@ -11,6 +11,6 @@ export class TitleSearchService {
   constructor(private https: HttpClient) { }
 
   searchTitles(query: string): Observable<any> {
-    return this.https.get<any>(`${this.apiUrl}?query=${query}`, {});
+    return this.https.get<any>(`${this.apiUrl}?searchString=${query}`);
   }
 }
