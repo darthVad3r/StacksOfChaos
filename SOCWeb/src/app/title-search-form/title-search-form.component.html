@@ -1,9 +1,9 @@
 <h1>Search for a Title</h1>
 
-       <form (submit)="onSubmit()">
-                 <input type="text" [(ngModel)]="inputText" name="inputText" required />
-   <button type="submit">Search</button>
-               </form>
-               <ul>
-                 <li *ngFor="let title of titles">{{ title }}</li>
-               </ul>
+<form (submit)="onSubmit()">
+  <input type="text" [(ngModel)]="inputText" name="inputText" required />
+  <button type="submit">Search</button>
+</form>
+<ul>
+  <li *ngFor="let title of titles">{{ title }}</li>
+</ul>
