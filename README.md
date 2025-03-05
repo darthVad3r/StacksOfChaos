@@ -1,5 +1,5 @@
 # StacksOfChaos
-This is an application for managing home libraries. Here are the projects that make up this application. 
+This is an application for managing home libraries using Angular, .Net Core, .Net Maui and MS SQL Server. Here are the projects that make up this application. 
 1. Name: SOCApi Type: .NET 9 Web API
  a. Purpose: Provides RESTful API endpoints for managing data related to spots and titles.
  b. Key Features:
