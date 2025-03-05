@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { TitleSearchService } from './title-search-service';
-import { FormsModule } from '@angular/forms'; }
+import { FormsModule } from '@angular/forms'; 
 
 @Component({
   selector: 'app-title-search-form',
@@ -15,7 +15,8 @@ export class TitleSearchFormComponent {
 
   constructor(@Inject(TitleSearchService) private titleSearchService: TitleSearchService) {}
 
-  onSubmit() {
+  searchForTitle() {
+    alert(this.inputText);
     console.log("Hello World");
     this.titleSearchService.searchTitles(this.inputText).subscribe({
       next: (response: { titles: string[] }) => {
