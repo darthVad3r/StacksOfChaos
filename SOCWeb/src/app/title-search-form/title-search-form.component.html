@@ -1,7 +1,18 @@
 <form>
-<label for="titleSearch">
+  <label for="titleSearch">
     Search For a Title:
-    <input type="text" id="titleSearch" name="titleSearch" [(ngModel)]="inputText" />
+    <input
+      required
+      type="text"
+      id="titleSearch"
+      name="titleSearch"
+      [(ngModel)]="inputText"
+    />
     <button type="button" (click)="searchForTitle()">Search</button>
-</label>
+  </label>
 </form>
+<ul>
+  <li @for="let title of titles">
+    {{ title.title }}
+  </li>
+</ul>
