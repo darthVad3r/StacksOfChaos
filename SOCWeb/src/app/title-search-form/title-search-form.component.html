@@ -12,7 +12,7 @@
   </label>
 </form>
 <ul>
-  <li @for="let title of titles">
-    {{ title.title }}
-  </li>
+  @for(title of titles; track title){
+    <li>{{title}}</li>
+  }
 </ul>

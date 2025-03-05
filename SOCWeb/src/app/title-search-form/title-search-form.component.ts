@@ -19,20 +19,17 @@ export class TitleSearchFormComponent {
 
   searchForTitle() {
     alert(this.inputText);
-    try {
-      this.titleSearchService.searchTitles(this.inputText).subscribe({
-        next: (response: { titles: string[] }) => {
-          this.titles = response.titles;
-        },
-        error: (error: HttpErrorResponse) => {
-          console.error(
-            `Error occurred while searching for "${this.inputText}": `,
-            error.message
-          );
-        },
-      });
-    } catch (error) {
-      console.error('Error occurred while searching for title: ', error);
-    }
+    this.titleSearchService.searchTitles(this.inputText).subscribe({
+      next: (response: { titles: string[] }) => {
+        this.titles = response.titles;
+
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error(
+          `Error occurred while searching for "${this.inputText}": `,
+          error.message
+        );
+      },
+    });
   }
 }
