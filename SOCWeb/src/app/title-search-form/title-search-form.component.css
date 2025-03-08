@@ -1,17 +1,52 @@
- form {
-       display: flex;
-       flex-direction: column;
-     }
-    
-     input {
-       margin-bottom: 10px;
-     }
-    
-     ul {
-       list-style-type: none;
-       padding: 0;
-     }
-    
-     li {
-       margin-bottom: 5px;
-     }
+form{
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+label{
+    display: block;
+    font-weight: bold;
+}
+input[type="text"], input[type="email"], input[type="password"]{
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+button{
+    padding: 5px 10px;
+    background-color: #333;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover{
+    background-color: #555;
+}
+/*   --pill-accent: var(--bright-green); */
+/*   } */
+/*   .pill-group .pill:nth-child(6n + 3) { */
+/*     --pill-accent: var(--bright-yellow); */
+/*   } */
+/*   .pill-group .pill:nth-child(6n + 4) { */
+/*     --pill-accent: var(--bright-orange); */
+/*   } */
+/*   .pill-group .pill:nth-child(6n + 5) { */
+/*     --pill-accent: var(--bright-red); */
+/*   } */
+/*  */
+/*   .pill-group .pill:nth-child(6n + 6) { */
+/*     --pill-accent: var(--bright-purple); */
+/*   } */
+/*  */
+/*   .pill-group .pill:nth-child(6n + 7) { */
+/*     --pill-accent: var(--bright-blue); */
+/*   } */
+/*  */
