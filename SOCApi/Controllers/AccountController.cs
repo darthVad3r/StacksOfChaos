@@ -1,39 +1,51 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
+using SOCApi.Models;
+using SOCApi.Services;
 
 namespace SOCApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController : ControllerBase, IAccountController
     {
+        private readonly IUserService _userService;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ILogger<AccountController> logger)
+        public AccountController(ILogger<AccountController> logger, IUserService userService)
         {
+            _userService = userService;
             _logger = logger;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Validate the user input and hash the password
-            // Store the user information in the database
+            try
+            {
+                var result = await _userService.RegisterAsync(new RegisterRequest
+                { Username = request.Username, Email = request.Email, Password = request.Password });
 
-            return Ok("Registration successful");
+                var response = new RegisterResponse
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    CreatedAt = user.CreatedAt
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during registration");
+                return StatusCode(500, new { message = "An error occurred during registration" });
+            }
         }
     }
-
-    public class RegisterModel
-    {
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-}
