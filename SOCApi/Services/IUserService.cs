@@ -9,5 +9,6 @@ namespace SOCApi.Services
         Task<User> NewUserRegistrationAsync(RegisterRequest registerRequest);
         Task<User> LogOutAsync(string token);
         Task<User> UpdateUserAsync(User user);
+        Task<User> DeleteUserAsync(User user);
     }
 }
