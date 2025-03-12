@@ -1,4 +1,5 @@
 ﻿using SOCApi.Models;
+using SOCApi.ViewModels;
 
 namespace SOCApi.Services
 {
@@ -10,5 +11,6 @@ namespace SOCApi.Services
         Task<User> LogOutAsync(string token);
         Task<User> UpdateUserAsync(User user);
         Task<User> DeleteUserAsync(User user);
+        Task<bool> CheckUserExistAsync(string email);
     }
 }

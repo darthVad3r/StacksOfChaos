@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SOCApi.Models;
+using SOCApi.ViewModels;
 
 namespace SOCApi.Controllers
 {

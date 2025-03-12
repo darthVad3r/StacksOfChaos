@@ -1,4 +1,4 @@
-﻿namespace SOCApi.Models
+﻿namespace SOCApi.ViewModels
 {
     public class RegisterResponse
     {
