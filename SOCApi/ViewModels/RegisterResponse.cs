@@ -1,4 +1,6 @@
-﻿namespace SOCApi.ViewModels
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SOCApi.ViewModels
 {
     public class RegisterResponse
     {

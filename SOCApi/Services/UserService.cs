@@ -32,8 +32,22 @@ namespace SOCApi.Services
 
         public Task<User> RegisterAsync(RegisterRequest registerRequest)
         {
-            throw new NotImplementedException();
-
+            try
+            {
+                ArgumentNullException.ThrowIfNull(registerRequest);
+                var user = new User
+                {
+                    Username = registerRequest.Username,
+                    Email = registerRequest.Email,
+                    Password = registerRequest.Password
+                };
+                return Task.FromResult(user);
+            }
+            catch (Exception ex)
+            {
+                _logg
+                throw new Exception("An error occurred during registration", ex);
+            }
         }
 
         public Task<User> UpdateUserAsync(User user)
