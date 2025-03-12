@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SOCApi.Services;
 using SOCApi.ViewModels;
+using SOCApi.Models;
 
 namespace SOCApi.Controllers
 {
@@ -35,10 +36,10 @@ namespace SOCApi.Controllers
 
                 var response = new RegisterResponse
                 {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Email = user.Email,
-                    CreatedAt = user.CreatedAt
+                    //Id = user.Id,
+                    //Username = user.Username,
+                    //Email = user.Email,
+                    //CreatedAt = user.CreatedAt
                 };
                 return Ok(response);
             }
@@ -49,3 +50,4 @@ namespace SOCApi.Controllers
             }
         }
     }
+}

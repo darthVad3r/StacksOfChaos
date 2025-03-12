@@ -32,7 +32,8 @@ namespace SOCApi.Services
 
         public Task<User> RegisterAsync(RegisterRequest registerRequest)
         {
-            
+            throw new NotImplementedException();
+
         }
 
         public Task<User> UpdateUserAsync(User user)
