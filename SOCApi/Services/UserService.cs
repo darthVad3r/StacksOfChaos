@@ -45,7 +45,6 @@ namespace SOCApi.Services
             }
             catch (Exception ex)
             {
-                _logg
                 throw new Exception("An error occurred during registration", ex);
             }
         }
@@ -60,6 +59,6 @@ namespace SOCApi.Services
             throw new NotImplementedException(); ;
         }
 
-        
+
     }
 }
