@@ -1,10 +1,19 @@
 ﻿using SOCApi.Models;
 using SOCApi.ViewModels;
+using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace SOCApi.Services
 {
     public class UserService : IUserService
     {
+        private readonly string _connectionString;
+
+        public UserService(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
         public Task<bool> CheckUserExistAsync(string email)
         {
             throw new NotImplementedException();
@@ -30,7 +39,7 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public Task<User> RegisterAsync(RegisterRequest registerRequest)
+        public async Task<User> RegisterAsync(RegisterRequest registerRequest)
         {
             try
             {
@@ -39,9 +48,12 @@ namespace SOCApi.Services
                 {
                     Username = registerRequest.Username,
                     Email = registerRequest.Email,
-                    Password = registerRequest.Password
+                    Password = HashPassword(registerRequest.Password)
                 };
-                return Task.FromResult(user);
+
+                await AddNewUserToDatabaseAsync(user);
+
+                return user;
             }
             catch (Exception ex)
             {
@@ -59,6 +71,35 @@ namespace SOCApi.Services
             throw new NotImplementedException(); ;
         }
 
+        private static string HashPassword(string password)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
+        }
 
+        private async Task AddNewUserToDatabaseAsync(User user)
+        {
+            try
+            {
+                var query = "EXEC usp_AddNewUser @Username, @Email, @Password";
+                await using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+                await using var command = new SqlCommand(query, connection);
+                command.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar) { Value = user.Username });
+                command.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar) { Value = user.Email });
+                command.Parameters.Add(new SqlParameter("@Password", SqlDbType.NVarChar) { Value = user.Password });
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (SqlException ex)
+            {
+                throw new DataException("A database error occurred while adding a new user to the database", ex);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new InvalidOperationException("An invalid operation occurred while adding a new user to the database", ex);
+            }
+        }
     }
 }
