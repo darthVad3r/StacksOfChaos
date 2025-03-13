@@ -7,10 +7,18 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TitleSearchFormComponent } from './title-search-form/title-search-form.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { RegistrationFormComponent } from './registration-form/registration-form.component';
+import { NavBarComponent } from './nav-bar/nav-bar.component';
+import { LoginComponent } from './login/login.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    RegistrationFormComponent,
+    NavBarComponent,
+    LoginComponent,
+    DashboardComponent
   ],
   imports: [
     TitleSearchFormComponent,

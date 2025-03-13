@@ -64,5 +64,7 @@
   <ItemGroup>
     <Build Include="dbo\Tables\Spot.sql" />
     <Build Include="dbo\Tables\Title.sql" />
+    <Build Include="dbo\Tables\Users.sql" />
+    <Build Include="dbo\Stored Procedures\usp_AddNewUser.sql" />
   </ItemGroup>
 </Project>

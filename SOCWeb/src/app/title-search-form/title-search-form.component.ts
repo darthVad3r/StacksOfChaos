@@ -28,7 +28,7 @@ export class TitleSearchFormComponent {
 
   handleSearchSuccess(titles: string[]) {
     this.titles = titles;
-    this.titleString=titles.toString();
+    this.titleString = titles.toString();
   }
 
   handleSearchError(error: HttpErrorResponse) {
