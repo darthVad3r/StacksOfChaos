@@ -60,11 +60,15 @@
     <Folder Include="dbo\Tables" />
     <Folder Include="dbo\Stored Procedures" />
     <Folder Include="dbo\Views" />
+    <Folder Include="PublishLocations\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Spot.sql" />
     <Build Include="dbo\Tables\Title.sql" />
     <Build Include="dbo\Tables\Users.sql" />
     <Build Include="dbo\Stored Procedures\usp_AddNewUser.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PublishLocations\SOCData.publish.xml" />
   </ItemGroup>
 </Project>
