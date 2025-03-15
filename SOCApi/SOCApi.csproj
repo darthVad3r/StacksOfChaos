@@ -16,4 +16,8 @@
     <PackageReference Include="system.data.sqlClient" Version="4.9.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="certs\" />
+  </ItemGroup>
+
 </Project>
