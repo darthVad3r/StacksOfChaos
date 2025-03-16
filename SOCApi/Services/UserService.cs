@@ -2,6 +2,7 @@
 using SOCApi.ViewModels;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 
 namespace SOCApi.Services
 {
@@ -39,17 +40,30 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public async Task<User> RegisterAsync(RegisterRequest registerRequest)
+        public async Task<User> RegisterAsync(string request)
         {
             try
             {
-                ArgumentNullException.ThrowIfNull(registerRequest);
-                var user = new User
+                ArgumentNullException.ThrowIfNull(request);
+
+                var registerRequest = new RegisterRequest();
+                registerRequest = JsonConvert.DeserializeObject<RegisterRequest>(request);
+
+                if (registerRequest == null)
                 {
-                    Username = registerRequest.Username,
-                    Email = registerRequest.Email,
-                    Password = HashPassword(registerRequest.Password)
-                };
+                    throw new ArgumentNullException("Register request is null");
+                }
+
+                if (registerRequest.Password != registerRequest.ConfirmPassword)
+                {
+                    throw new ArgumentException("Passwords do not match");
+                }
+
+                // Hash the password
+                var hashedPassword = HashPassword(registerRequest.Password);
+
+                // Check if the user already exists
+                var userExists = await CheckUserExistAsync(registerRequest.Email);
 
                 await AddNewUserToDatabaseAsync(user);
 
@@ -100,6 +114,11 @@ namespace SOCApi.Services
             {
                 throw new InvalidOperationException("An invalid operation occurred while adding a new user to the database", ex);
             }
+        }
+
+        public Task<User> RegisterAsync(RegisterRequest registerRequest)
+        {
+            throw new NotImplementedException();
         }
     }
 }
