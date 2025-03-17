@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "angular-oauth2-oidc": "^19.0.0"
+  }
+}
