@@ -1,0 +1,6 @@
+﻿CREATE TABLE RefreshTokens (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT FOREIGN KEY REFERENCES Users(Id),
+    Token NVARCHAR(255),
+    ExpiryDate DATETIME
+);
