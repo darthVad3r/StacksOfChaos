@@ -61,6 +61,7 @@ public class Program
                         Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                 };
             });
+        services.AddAuthorization();
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
