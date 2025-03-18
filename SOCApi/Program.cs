@@ -26,6 +26,7 @@ public class Program
         // API Services
         services.AddControllers();
         services.AddEndpointsApiExplorer();
+        services.AddSingleton<TokenService>();
 
         // Application Services
         ConfigureApplicationServices(services, configuration);
