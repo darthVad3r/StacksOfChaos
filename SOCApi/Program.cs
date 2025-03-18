@@ -1,5 +1,8 @@
 using Microsoft.OpenApi.Models;
 using SOCApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace SOCApi;
 
@@ -25,7 +28,7 @@ public class Program
         services.AddEndpointsApiExplorer();
 
         // Application Services
-        ConfigureApplicationServices(services);
+        ConfigureApplicationServices(services, configuration);
 
         // HTTP Client
         ConfigureHttpClient(services);
@@ -37,10 +40,27 @@ public class Program
         ConfigureSwagger(services);
     }
 
-    private static void ConfigureApplicationServices(IServiceCollection services)
+    private static void ConfigureApplicationServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<BookSearchService>();
         // Add other application services here
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    //ValidIssuer = "https://localhost:5001",
+                    //ValidAudience = "https://localhost:5001",
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                };
+            });
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
