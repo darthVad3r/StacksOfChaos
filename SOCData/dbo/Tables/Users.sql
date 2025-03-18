@@ -3,7 +3,7 @@
     Name NVARCHAR(100) NOT NULL,
     UserName NVARCHAR(50) NOT NULL,
     Email NVARCHAR(255) NOT NULL,
-    Password NVARCHAR(255) NOT NULL,
+    PasswordHash NVARCHAR(255) NOT NULL,
     Token NVARCHAR(MAX),
     Role NVARCHAR(50),
     RefreshToken NVARCHAR(MAX),
