@@ -8,7 +8,7 @@
     Role NVARCHAR(50),
     RefreshToken NVARCHAR(MAX),
     RefreshTokenExpiryTime DATETIME,
-    CreatedAt DATETIME NOT NULL,
+    CreatedDate DateTime2 NOT NULL,
     UpdatedAt DATETIME NOT NULL,
     IsDeleted BIT NOT NULL DEFAULT 0,
     IsVerified BIT NOT NULL DEFAULT 0,
