@@ -18,8 +18,10 @@ namespace SOCApi.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Gets the title information based on the provided search string.
+        /// Retrieves title information based on the provided search string.
+        /// </summary>
+        /// <param name="searchString">The search string to look for titles.</param>
+        /// <returns>An IActionResult containing the search results or an error message.</returns>
         /// </summary>
         /// <param name="searchString">The search string to look for titles.</param>
         /// <returns>An IActionResult containing the search results or an error message.</returns>

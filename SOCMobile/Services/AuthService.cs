@@ -20,6 +20,7 @@ namespace StacksOfChaos.SOCMobile.Services
             // Replace "https://your-api-url/" with your actual API URL
             var baseAddress = "https://localhost:5001"; // Replace with configuration value
             _httpClient = new HttpClient { BaseAddress = new Uri(baseAddress) };
+        }
     private sealed class LoginResponse
         {
             public string Token { get; set; }

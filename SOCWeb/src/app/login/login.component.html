@@ -1,24 +1,7 @@
 <div>
   <h1>Login</h1>
-  <form [formGroup]="loginForm" (submit)="onLogin()">
-    <div>
-      <label for="username">Username</label>
-      <input required type="text" id="username" formControlName="username" />
-    </div>
-    <div>
-      <label for="password">Password</label>
-      <input
-        required
-        type="password"
-        id="password"
-        formControlName="password"
-      />
-    </div>
-    <button type="submit" [disabled]="!loginForm.valid">Login</button>
-  </form>
-  @if (loginError != null) {
-
-  <p>{{ loginError }}</p>
-  }
-  <a routerLink="/register">Register</a>
+  <button mat-raised-button color="primary" (click)="loginWithGoogle()">
+    <img src="path/to/google-icon.png" alt="Google" style="width: 20px; margin-right: 8px;">
+    Login with Google
+  </button>
 </div>

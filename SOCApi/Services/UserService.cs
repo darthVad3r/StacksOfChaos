@@ -82,6 +82,7 @@ namespace SOCApi.Services
         {
             try
             {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(user.Password);
                 var hash = System.Security.Cryptography.SHA256.HashData(bytes);
                 var query = "EXEC usp_AddNewUser @Username, @Email, @Password";
                 await using var connection = new SqlConnection(_connectionString);
@@ -89,7 +90,7 @@ namespace SOCApi.Services
                 await using var command = new SqlCommand(query, connection);
                 command.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar) { Value = user.Username });
                 command.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar) { Value = user.Email });
-                command.Parameters.Add(new SqlParameter("@Password", SqlDbType.NVarChar) { Value = user.Password });
+                command.Parameters.Add(new SqlParameter("@Password", SqlDbType.NVarChar) { Value = Convert.ToBase64String(hash) });
                 await command.ExecuteNonQueryAsync();
             }
             catch (SqlException ex)

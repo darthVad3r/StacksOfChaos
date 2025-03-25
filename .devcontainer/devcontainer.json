@@ -1,0 +1,27 @@
+{
+    "name": "StacksOfChaos Development Container",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "16"
+        }
+    },
+    "postCreateCommand": "dotnet restore && dotnet build",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode"
+            ]
+        }
+    }
+    // },
+    // "containerEnv": {
+    //     "SOC_CONNECTION_STRING": "Server=HAL9000;Data Source=(localdb)\\ProjectModels;Initial Catalog=SOCData;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;",
+    //     "GOOGLE_CLIENT_ID": "your-google-client-id",
+    //     "GOOGLE_CLIENT_SECRET": "your-google-client-secret"
+    // }
+}

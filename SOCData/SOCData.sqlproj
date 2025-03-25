@@ -71,5 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PublishLocations\SOCData.publish.xml" />
+    <None Include="SOCData.publish.xml" />
   </ItemGroup>
 </Project>

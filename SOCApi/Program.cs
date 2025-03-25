@@ -1,12 +1,13 @@
-using Microsoft.OpenApi.Models;
-using SOCApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using SOCApi.Services;
 using System.Text;
+
 
 namespace SOCApi;
 
-public class Program
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -45,23 +46,38 @@ public class Program
     {
         services.AddScoped<BookSearchService>();
         // Add other application services here
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            var jwtKey = configuration["Jwt:Key"];
+
+            if (string.IsNullOrEmpty(jwtKey))
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
-                    //ValidIssuer = "https://localhost:5001",
-                    //ValidAudience = "https://localhost:5001",
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-                };
-            });
+                throw new ArgumentNullException(nameof(jwtKey), "Jwt:Key configuration value is missing.");
+            }
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = configuration["Jwt:Issuer"],
+                ValidAudience = configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+            };
+        })
+        .AddGoogle(options =>
+        {
+            options.ClientId = configuration["Google:ClientId"];
+            options.ClientSecret = configuration["Google:ClientSecret"];
+        })
+        .AddCookie("Cookies");
         services.AddAuthorization();
     }
 
@@ -77,7 +93,7 @@ public class Program
     private static void ConfigureCors(IServiceCollection services, IConfiguration configuration)
     {
         var corsOrigin = configuration.GetValue<string>("CorsSettings:AllowedOrigin")
-            ?? "http://localhost:52454";
+            ?? Common.ALLOWED_ORIGIN;
 
         services.AddCors(options =>
         {

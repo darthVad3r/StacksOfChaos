@@ -12,6 +12,8 @@ import { NavBarComponent } from './nav-bar/nav-bar.component';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 
+import { MatButtonModule } from '@angular/material/button';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -23,6 +25,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
   imports: [
     TitleSearchFormComponent,
     BrowserModule,
+    MatButtonModule,
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
