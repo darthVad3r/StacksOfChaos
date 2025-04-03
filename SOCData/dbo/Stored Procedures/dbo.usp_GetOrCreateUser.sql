@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE usp_GetOrCreateUser
+﻿CREATE PROCEDURE [dbo].[usp_GetOrCreateUser]
 	@Email NVARCHAR(255),
 	@Name NVARCHAR(100)
 AS
@@ -11,9 +11,12 @@ BEGIN
 	
 	IF @UserID IS NULL
 	BEGIN
-		INSERT INTO Users (Email, Name, CreatedDate)
-		VALUES (@Email, @Name, GETDATE());
+		INSERT INTO Users (Email, Name, CreatedDate, UserName)
+		VALUES (@Email, @Name, GETDATE(), @Email);
 		SET @UserID = SCOPE_IDENTITY();
 	END
-	SELECT @UserID;
+	SELECT @UserID AS UserID;
 END
+GO
+
+

@@ -19,7 +19,6 @@ import { MatButtonModule } from '@angular/material/button';
     AppComponent,
     RegistrationFormComponent,
     NavBarComponent,
-    LoginComponent,
     DashboardComponent
   ],
   imports: [
@@ -27,6 +26,7 @@ import { MatButtonModule } from '@angular/material/button';
     BrowserModule,
     MatButtonModule,
     AppRoutingModule,
+    LoginComponent,
     FormsModule,
     ReactiveFormsModule,
     CommonModule

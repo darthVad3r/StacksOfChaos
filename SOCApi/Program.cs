@@ -46,20 +46,16 @@ public static class Program
     {
         services.AddScoped<BookSearchService>();
         // Add other application services here
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = "Cookies"; // Use JWT for authentication
+            options.DefaultSignInScheme = "Cookies";
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(options =>
         {
-            var jwtKey = configuration["Jwt:Key"];
-
-            if (string.IsNullOrEmpty(jwtKey))
-            {
-                throw new ArgumentNullException(nameof(jwtKey), "Jwt:Key configuration value is missing.");
-            }
-
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -72,13 +68,13 @@ public static class Program
                     Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
             };
         })
+        .AddCookie("Cookies")
         .AddGoogle(options =>
         {
             options.ClientId = configuration["Google:ClientId"];
             options.ClientSecret = configuration["Google:ClientSecret"];
-        })
-        .AddCookie("Cookies");
-        services.AddAuthorization();
+            options.SignInScheme = "Cookies"; // Use Cookies for sign-in
+        });
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
@@ -93,7 +89,7 @@ public static class Program
     private static void ConfigureCors(IServiceCollection services, IConfiguration configuration)
     {
         var corsOrigin = configuration.GetValue<string>("CorsSettings:AllowedOrigin")
-            ?? Common.ALLOWED_ORIGIN;
+            ?? Common.GetAllowedOrigin();
 
         services.AddCors(options =>
         {
@@ -133,6 +129,11 @@ public static class Program
 
         // Production middleware
         ConfigureProductionMiddleware(app);
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+        
+        app.MapControllers();
     }
 
     private static void ConfigureDevelopmentMiddleware(IApplicationBuilder app)
@@ -143,6 +144,7 @@ public static class Program
 
     private static void ConfigureProductionMiddleware(IApplicationBuilder app)
     {
+        app.UseAuthentication();
         app.UseHttpsRedirection();
         app.UseCors("AllowSpecificOrigin");
         app.UseAuthorization();
