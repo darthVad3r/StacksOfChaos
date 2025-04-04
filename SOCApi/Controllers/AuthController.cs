@@ -68,7 +68,7 @@ namespace SOCApi.Controllers
                 // Redirect to Google for authentication
                 var props = new AuthenticationProperties
                 {
-                    RedirectUri = "/api/auth/google-callback",
+                    RedirectUri = Common.GOOGLE_CALLBACK_URI,
                     Items = { { "scheme", GoogleDefaults.AuthenticationScheme } }
                 };
                 var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
@@ -92,7 +92,6 @@ namespace SOCApi.Controllers
                 {
                     return Unauthorized(new { error = "Google authentication failed" });
                 }
-                Console.WriteLine($"AuthenticateResult: {authenticateResult}");
 
                 // Get user info from Google claims
                 var email = authenticateResult.Principal.FindFirstValue(ClaimTypes.Email);
