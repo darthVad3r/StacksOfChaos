@@ -24,7 +24,6 @@ export class AuthService {
   }
 
   googleLogin() {
-    
     window.location.href = `${this.apiUrl}/google-login`;
   }
 

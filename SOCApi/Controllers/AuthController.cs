@@ -23,6 +23,14 @@ namespace SOCApi.Controllers
             _connectionString = _config.GetConnectionString("DefaultConnection");
         }
 
+        /// <summary>
+        /// Tests the database connection using the provided connection string.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks></remarks>
+        /// <example>
+        /// link: /api/auth/test-connection
+        /// </example>
         [HttpGet("test-connection")]
         public async Task<IActionResult> TestConnection()
         {
@@ -50,6 +58,11 @@ namespace SOCApi.Controllers
             }
         }
 
+        /// <summary>
+        /// /// Initiates Google authentication.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks></remarks>
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
@@ -68,7 +81,7 @@ namespace SOCApi.Controllers
                 // Redirect to Google for authentication
                 var props = new AuthenticationProperties
                 {
-                    RedirectUri = Common.GOOGLE_CALLBACK_URI,
+                    RedirectUri = Common.Endpoints.GOOGLE_CALLBACK_URI,
                     Items = { { "scheme", GoogleDefaults.AuthenticationScheme } }
                 };
                 var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
@@ -81,6 +94,14 @@ namespace SOCApi.Controllers
             }
         }
 
+        /// <summary>
+        /// /// Callback endpoint for Google authentication.
+        /// </summary>
+        /// <returns>
+        /// 
+        /// </returns>
+        /// <remarks>
+        /// </remarks>
         [HttpGet("google-callback")]
         public async Task<IActionResult> GoogleCallback()
         {
@@ -122,12 +143,21 @@ namespace SOCApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Registers or retrieves a user from the database.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="name"></param>
+        /// <returns>
+        /// 
+        /// </returns>
+        /// <exception cref="InvalidOperationException"></exception>
         private async Task<int> RegisterOrGetUser(string email, string name)
         {
             Console.WriteLine(_connectionString);
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
-            await using var cmd = new SqlCommand(Common.StoredProcedureGetOrCreateUser, conn)
+            await using var cmd = new SqlCommand(Common.StoredProcedures.GetOrCreateUser, conn)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -145,6 +175,13 @@ namespace SOCApi.Controllers
             return userId;
         }
 
+        /// <summary>
+        /// Generates a JWT token for the user. 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="email"></param>
+        /// <returns></returns>
+        /// <remarks></remarks>
         private string GenerateJwtToken(int userId, string email)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
