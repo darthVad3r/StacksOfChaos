@@ -8,7 +8,7 @@ import { AuthService } from '../services/auth.service';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
   onLogout(): void {
     this.authService.logout();
   }

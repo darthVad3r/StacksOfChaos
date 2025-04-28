@@ -4,7 +4,25 @@ namespace SOCApi
     
     public static class Common
     {
-        public const string StoredProcedureGetOrCreateUser = "usp_GetOrCreateUser";
-        public const string GOOGLE_CALLBACK_URI = "/api/auth/google-callback";
+        public static string GetConnectionString()
+        {
+            return "Server=localhost;Database=SOCApi;User Id=sa;Password=your_password;";
+        }
+        public static string GetAllowedOrigin()
+        {
+            return "http://localhost:52454";
+        }
+        public static class Endpoints
+        {
+            public const string GOOGLE_LOGIN = "/api/auth/google-login";
+            public const string GOOGLE_CALLBACK_URI = "/api/auth/google-callback";
+            public const string TEST_CONNECTION = "/api/auth/test-connection";
+            public const string CLIENT_REDIRECT_URI = "http://localhost:52454/api/auth/google-callback";
+        }
+
+        public static class StoredProcedures
+        {
+            public const string GetOrCreateUser = "usp_GetOrCreateUser";
+        }
     }
 }

@@ -59,32 +59,37 @@ namespace SOCApi.Controllers
         }
 
         /// <summary>
-        /// /// Initiates Google authentication.
+        /// Initiates Google authentication.
         /// </summary>
-        /// <returns></returns>
-        /// <remarks></remarks>
+        /// <returns>
+        /// Redirects the user to Google's authentication page if not already authenticated.
+        /// </returns>
+        /// <remarks>
+        /// This method checks if the user is already authenticated. If not, it initiates the Google authentication process by redirecting the user to Google's login page. 
+        /// Upon successful authentication, the user is redirected to the callback endpoint specified in the `RedirectUri`.
+        /// </remarks>
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
             try
             {
-                // if (User.Identity.IsAuthenticated || User.Claims.Any(c => c.Type == ClaimTypes.Email))
-                // {
-                //     // User is already authenticated, redirect to home or return a message
-                //     return Redirect("/api/auth/google-callback"); // Redirect to home or any other page
-                // }
-                // else if (User.Identity.IsAuthenticated)
-                // {
-                //     return BadRequest(new { error = "User already authenticated" });
-                // }
-                // Initiate Google authentication
-                // Redirect to Google for authentication
+                Console.WriteLine("Checking if user is authenticated...");
+
+                if (User.Identity.IsAuthenticated)
+                {
+                    // User is already authenticated, redirect to home or return a message
+                    Console.WriteLine("User is already authenticated.");
+                    return Redirect(Common.Endpoints.CLIENT_REDIRECT_URI); // Redirect to home or any other page
+                }
+
+                Console.WriteLine("User is not authenticated, redirecting to Google...");
+
                 var props = new AuthenticationProperties
                 {
                     RedirectUri = Common.Endpoints.GOOGLE_CALLBACK_URI,
                     Items = { { "scheme", GoogleDefaults.AuthenticationScheme } }
                 };
-                var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
+                var redirectUrl = Url.Action("google-callback", "Auth", null, Request.Scheme);
                 var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
                 return Challenge(properties, GoogleDefaults.AuthenticationScheme);
             }
@@ -101,12 +106,16 @@ namespace SOCApi.Controllers
         /// 
         /// </returns>
         /// <remarks>
+        /// 
         /// </remarks>
         [HttpGet("google-callback")]
+        [Route("google-callback")]
         public async Task<IActionResult> GoogleCallback()
         {
             try
             {
+                // Check if the user is authenticated
+
                 // Authenticate the Google response
                 var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
                 if (!authenticateResult.Succeeded || authenticateResult.Principal == null)
@@ -134,7 +143,9 @@ namespace SOCApi.Controllers
 
                 // For API clients, return the token in the response
                 // For redirect scenarios, you could redirect with the token as a query parameter
-                return Ok(new { token });
+                var redirectUrl = $"{Common.Endpoints.CLIENT_REDIRECT_URI}?token={token}";
+                return Redirect(redirectUrl);
+                //return Ok(new { token });
             }
             catch (Exception ex)
             {
