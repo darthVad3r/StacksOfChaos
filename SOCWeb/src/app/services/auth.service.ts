@@ -58,15 +58,16 @@ export class AuthService {
 
   // auth.service.ts
   handleCallback(token: string) {
-    localStorage.setItem('token', token);
-
-    if (this.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
-    }
-    // Navigate to protected route or perform additional actions
-    // after successful login
-    // For example, you can redirect to the home page or dashboard
-    // this.router.navigate(['/home']);
-    this.router.navigate(['/dashboard']);
+    this.http.get<{ token: string }>(`${this.apiUrl}/google-login/callback`, { withCredentials: true })
+    .subscribe({
+      next: (response) => {
+        localStorage.setItem('token', response.token);
+        this.router.navigate(['/dashboard']);
+        console.log('Google login successful, token stored:', response.token);
+      },
+      error: (error) => {
+        console.error('Error during Google login callback:', error);
+      },
+    })
   }
 }

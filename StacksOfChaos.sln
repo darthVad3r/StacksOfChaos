@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCApi", "SOCApi\SOCApi.csp
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "SOCWeb", "SOCWeb\SOCWeb.esproj", "{466B7DD9-7D08-4903-9CE1-EC6266E78BB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCApi.Tests", "SOCApi.Tests\SOCApi.Tests.csproj", "{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{466B7DD9-7D08-4903-9CE1-EC6266E78BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{466B7DD9-7D08-4903-9CE1-EC6266E78BB0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{466B7DD9-7D08-4903-9CE1-EC6266E78BB0}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

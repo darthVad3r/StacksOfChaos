@@ -3,6 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SOCApi.Services;
 using System.Text;
+using Google.Apis.Auth.AspNetCore3;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 
 namespace SOCApi;
@@ -47,12 +50,16 @@ public static class Program
         services.AddScoped<BookSearchService>();
         // Add other application services here
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = "Cookies"; // Use JWT for authentication
-            options.DefaultSignInScheme = "Cookies";
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        })
+        .AddGoogle(options =>
+        {
+            options.ClientId = configuration["Google:ClientId"];
+            options.ClientSecret = configuration["Google:ClientSecret"];
+            options.SignInScheme = "Cookies"; // Use Cookies for sign-in
         })
         .AddJwtBearer(options =>
         {
@@ -64,16 +71,8 @@ public static class Program
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = configuration["Jwt:Issuer"],
                 ValidAudience = configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
             };
-        })
-        .AddCookie("Cookies")
-        .AddGoogle(options =>
-        {
-            options.ClientId = configuration["Google:ClientId"];
-            options.ClientSecret = configuration["Google:ClientSecret"];
-            options.SignInScheme = "Cookies"; // Use Cookies for sign-in
         });
     }
 
