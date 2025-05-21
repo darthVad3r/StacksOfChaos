@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System.Security.Cryptography;
+using SOCApi.Repositories;
 
 namespace SOCApi.Controllers
 {
@@ -20,13 +21,16 @@ namespace SOCApi.Controllers
         private readonly IConfiguration _config;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly string _connectionString;
+        private readonly IUserRepository _userRepository;
 
-        public AuthController(IConfiguration config, IUrlHelperFactory urlHelperFactory)
+        public AuthController(IConfiguration config, IUrlHelperFactory urlHelperFactory, IUserRepository userRepository)
         {
             _config = config;
             _urlHelperFactory = urlHelperFactory;
+            _userRepository = userRepository;
 
-            _connectionString = _config.GetConnectionString("DefaultConnection");
+            //_connectionString = _config.GetConnectionString("DefaultConnection");
+            _connectionString = _config["ConnectionStrings:DefaultConnection"];
         }
 
         /// <summary>

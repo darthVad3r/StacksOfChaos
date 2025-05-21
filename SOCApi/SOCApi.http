@@ -1,6 +1,7 @@
-@SOCApi_HostAddress = http://localhost:5000
+@SOCApi_HostAddress = https://localhost:5001
 
-GET {{SOCApi_HostAddress}}/titlesearch/
+### Get Title Search
+GET {{SOCApi_HostAddress}}/api/GetTitleInformation
 Accept: application/json
 
 ###

@@ -13,6 +13,8 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "SOCWeb", "SOCWeb\SOCWeb.esp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCApi.Tests", "SOCApi.Tests\SOCApi.Tests.csproj", "{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOCData.Tests", "SOCData.Tests\SOCData.Tests.csproj", "{12DA8A09-933F-4661-AA14-0370EA1613D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,8 +46,15 @@ Global
 		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF376B7C-830E-4663-BEA2-ADFD3C9CCAB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12DA8A09-933F-4661-AA14-0370EA1613D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12DA8A09-933F-4661-AA14-0370EA1613D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12DA8A09-933F-4661-AA14-0370EA1613D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12DA8A09-933F-4661-AA14-0370EA1613D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {63E78A66-A923-4A18-8D26-1FE9F8693D36}
 	EndGlobalSection
 EndGlobal
