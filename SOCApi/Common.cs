@@ -10,14 +10,15 @@ namespace SOCApi
         }
         public static string GetAllowedOrigin()
         {
-            return "http://localhost:52454";
+            return "https://localhost:52454";
         }
         public static class Endpoints
         {
+            public const string BASE_URL = "https://localhost:52454";
             public const string GOOGLE_LOGIN = "/api/auth/google-login";
             public const string GOOGLE_CALLBACK_URI = "/api/auth/google-callback";
             public const string TEST_CONNECTION = "/api/auth/test-connection";
-            public const string CLIENT_REDIRECT_URI = "http://localhost:52454/api/auth/google-callback";
+            public const string CLIENT_REDIRECT_URI = BASE_URL + "/api/auth/google-callback";
         }
 
         public static class StoredProcedures

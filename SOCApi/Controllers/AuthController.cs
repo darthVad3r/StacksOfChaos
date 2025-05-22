@@ -2,15 +2,13 @@
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.IdentityModel.Tokens;
-using System.Data;
+using SOCApi.Repositories;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Mvc.Routing;
 using System.Security.Cryptography;
-using SOCApi.Repositories;
+using System.Text;
 
 namespace SOCApi.Controllers
 {
@@ -30,7 +28,7 @@ namespace SOCApi.Controllers
             _userRepository = userRepository;
 
             //_connectionString = _config.GetConnectionString("DefaultConnection");
-            _connectionString = _config["ConnectionStrings:DefaultConnection"];
+            _connectionString = "Server=localhost;Database=SOCData;Integrated Security=True;TrustServerCertificate=True;";
         }
 
         /// <summary>
@@ -48,17 +46,39 @@ namespace SOCApi.Controllers
         [HttpGet("google-login")]
         public async Task<IActionResult> GoogleLogin()
         {
-            var authProperties = new AuthenticationProperties
+            try
             {
-                RedirectUri = Url.Action(nameof(GoogleCallback), "Auth"),
-                // Set the redirect URI to the Google callback endpoint
-                Items =
-                {
-                    { "scheme", GoogleDefaults.AuthenticationScheme }
-                }
-            };
+                Console.WriteLine("GoogleLogin called");
 
-            return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+
+                {
+                    RedirectUri = Url.Action(nameof(GoogleCallback), "Auth"),
+                    // Set the redirect URI to the Google callback endpoint
+                    Items =
+                    {
+                        { "scheme", GoogleDefaults.AuthenticationScheme }
+                    }
+                };
+
+                return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Console.WriteLine($"An ArgumentNullException was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
+                return BadRequest($"Redirect URI is null or empty: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"An UnauthorizedAccessException was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
+                return Unauthorized($"User is already authenticated: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An exception was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
         }
 
         /// <summary>
@@ -79,7 +99,11 @@ namespace SOCApi.Controllers
         [Route("google-callback")]
         public async Task<IActionResult> GoogleCallback()
         {
+            Console.WriteLine("GoogleCallback called");
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            Console.WriteLine($"GoogleCallback result: {result}");
+
             if (!result.Succeeded)
             {
                 return BadRequest("Google authentication failed.");
@@ -164,19 +188,14 @@ namespace SOCApi.Controllers
                 return BadRequest("Email and name are required.");
             }
 
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            using var cmd = new SqlCommand("sp_GetOrCreateUser", connection)
-            {
-                CommandType = CommandType.StoredProcedure
-            };
-            cmd.Parameters.AddWithValue("@Email", email);
-            cmd.Parameters.AddWithValue("@Name", name);
-            var userId = (int)await cmd.ExecuteScalarAsync();
-            if (userId == 0)
+            var user = await _userRepository.RegisterOrGetUserAsync(email, name);
+            if (user == null)
             {
                 return BadRequest("User registration failed.");
             }
+            // Assuming RegisterOrGetUserAsync returns the user ID
+            // If it returns a User object, you might need to extract the ID from it
+            var userId = user.Id;
             return Ok(userId);
         }
 

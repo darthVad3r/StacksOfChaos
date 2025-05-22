@@ -1,12 +1,8 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SOCApi.Services;
-using System.Text;
-using Google.Apis.Auth.AspNetCore3;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-
+using SOCApi.Repositories;
 
 namespace SOCApi;
 
@@ -49,30 +45,42 @@ public static class Program
     {
         services.AddScoped<BookSearchService>();
         // Add other application services here
+        services.AddScoped<IUserRepository, UserRepository>(provider =>
+        {
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException("DefaultConnection connection string is not configured.");
+            return new UserRepository(connectionString);
+        });
+
+        services.Configure<CookiePolicyOptions>(options =>
+        {
+            options.MinimumSameSitePolicy = SameSiteMode.None;
+            options.Secure = CookieSecurePolicy.Always;
+        });
+
+        // Ensure required configuration values are present
+        var googleClientId = configuration["Google:ClientId"];
+        var googleClientSecret = configuration["Google:ClientSecret"];
+
+        if (string.IsNullOrWhiteSpace(googleClientId))
+            throw new InvalidOperationException("Google:ClientId is not configured.");
+        if (string.IsNullOrWhiteSpace(googleClientSecret))
+            throw new InvalidOperationException("Google:ClientSecret is not configured.");
 
         services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = "Cookies";
+            options.DefaultSignInScheme = "Cookies";
             options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
         })
+        .AddCookie("Cookies")
         .AddGoogle(options =>
         {
-            options.ClientId = configuration["Google:ClientId"];
-            options.ClientSecret = configuration["Google:ClientSecret"];
-            options.SignInScheme = "Cookies"; // Use Cookies for sign-in
-        })
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = configuration["Jwt:Issuer"],
-                ValidAudience = configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"])),
-            };
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+            options.SignInScheme = "Cookies";
+            options.CallbackPath = "/signin-google";
         });
     }
 
@@ -96,7 +104,8 @@ public static class Program
                 builder => builder
                     .WithOrigins(corsOrigin)
                     .AllowAnyMethod()
-                    .AllowAnyHeader());
+                    .AllowAnyHeader()
+                    .AllowCredentials());
         });
     }
 
@@ -112,7 +121,7 @@ public static class Program
                 Contact = new OpenApiContact
                 {
                     Name = "API Support",
-                    Email = "support@example.com"
+                    Email = "rmfinley@yahoo.com"
                 }
             });
         });
@@ -120,18 +129,15 @@ public static class Program
 
     private static void ConfigureMiddleware(WebApplication app)
     {
-        // Development specific middleware
         if (app.Environment.IsDevelopment())
         {
             ConfigureDevelopmentMiddleware(app);
         }
 
-        // Production middleware
-        ConfigureProductionMiddleware(app);
-
+        app.UseHttpsRedirection();
+        app.UseCors("AllowSpecificOrigin");
         app.UseAuthentication();
         app.UseAuthorization();
-        
         app.MapControllers();
     }
 
@@ -139,18 +145,5 @@ public static class Program
     {
         app.UseSwagger();
         app.UseSwaggerUI();
-    }
-
-    private static void ConfigureProductionMiddleware(IApplicationBuilder app)
-    {
-        app.UseAuthentication();
-        app.UseHttpsRedirection();
-        app.UseCors("AllowSpecificOrigin");
-        app.UseAuthorization();
-
-        if (app is WebApplication webApp)
-        {
-            webApp.MapControllers();
-        }
     }
 }

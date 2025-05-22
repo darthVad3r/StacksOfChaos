@@ -11,7 +11,7 @@ public class SqlDataAccess
 
     public SqlDataAccess(IConfiguration configuration, ILogger<SqlDataAccess> logger)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException("DefaultConnection", "Connection string cannot be null or empty.");
+        _connectionString = configuration["ConnectionStrings:DefaultConnection"] ?? throw new ArgumentNullException("DefaultConnection", "Connection string cannot be null or empty.");
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 

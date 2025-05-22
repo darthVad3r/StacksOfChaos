@@ -29,6 +29,10 @@ namespace SOCApi.Tests
             _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("your-issuer");
             _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("your-audience");
 
+            // Mock the ConnectionStrings section and DefaultConnection value
+            var connectionStringsSectionMock = new Mock<IConfigurationSection>();
+            connectionStringsSectionMock.Setup(cs => cs["DefaultConnection"]).Returns("Server=localhost;Database=SOCData;Integrated Security=True;TrustServerCertificate=True;");
+
             _urlHelperFactoryMock = new Mock<IUrlHelperFactory>(); // Initialize the mock
 
             _userRepositoryMock = new Mock<IUserRepository>();
