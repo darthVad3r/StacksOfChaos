@@ -22,6 +22,7 @@
     "@angular/router": "^19.0.0",
     "angular": "^1.8.3",
     "angular-oauth2-oidc": "^19.0.0",
+    "angularcli": "^6.0.1",
     "jest-editor-support": "*",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
