@@ -115,7 +115,8 @@ namespace SOCApi.Controllers
 
             var jwtToken = GenerateJwtToken(userId, email);
 
-            return Ok(jwtToken);
+            // return Ok(jwtToken);
+            return Ok("https://localhost:52454/dashboard");
         }
 
         /// <summary>
