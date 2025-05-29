@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router'; 
 import { AuthService } from '../services/auth.service';
 import { ActivatedRoute } from '@angular/router';
 
@@ -9,25 +10,12 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class LoginComponent {
   constructor(
-    private readonly authService: AuthService,
-    private readonly route: ActivatedRoute
+    private readonly router: Router,
   ) {
-    this.route.queryParams.subscribe({
-      next: (params) => {
-        if (params['token']) {
-          this.authService.handleCallback(params['token']);
-        }
-      },
-      error: (err) => {
-        console.error('Error occurred while processing query params:', err);
-      },
-      complete: () => {
-        console.log('Query params processing completed.');
-      },
-    });
   }
 
-  loginWithGoogle(): void {
-    this.authService.googleLogin();
+  loginWithGoogle() {
+    window.location.href = 'https://localhost:52454/api/auth/google-login'; 
   }
+
 }

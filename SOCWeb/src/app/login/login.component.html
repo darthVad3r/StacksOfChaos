@@ -1,26 +1,13 @@
 <div>
   <h1>Login</h1>
   <button mat-raised-button color="primary" (click)="loginWithGoogle()">
-    <img src="path/to/google-icon.png" alt="Google" style="width: 20px; margin-right: 8px;">
+    <img src="assets/google-icon.png" alt="Google" style="width: 20px; margin-right: 8px;">
     Login with Google
   </button>
+</div>
 
-  <div>
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <div id="g_id_onload"
-        data-client_id="129411000178-qot0pnvu4mdvmu5ip8if0825qcetmkn5.apps.googleusercontent.com"
-        data-login_uri="https://localhost:5001/api/auth/google-login"
-        data-callback="https://localhost:5001/api/auth/google-login"
-        data-auto_prompt="true">
-    </div>
-    <div class="g_id_signin"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="sign_in_with"
-        data-shape="rectangular"
-        data-logo_alignment="left">
-    </div>
-  </div>
-
+<div class="flex justify-center items-center h-screen">
+  <button (click)="loginWithGoogle()" class="bg-blue-500 text-white px-4 py-2 rounded">
+    Login with Google
+  </button>
 </div>

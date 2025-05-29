@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[usp_GetOrCreateUser]
-	@Email NVARCHAR(255),
-	@Name NVARCHAR(100)
+	@Email NVARCHAR(320),
+	@Name NVARCHAR(255)
 AS
 BEGIN
 	SET NOCOUNT ON;

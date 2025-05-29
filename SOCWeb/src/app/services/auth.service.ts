@@ -9,65 +9,26 @@ import { Router } from '@angular/router';
 export class AuthService {
   private readonly apiUrl = 'https://localhost:5001/api/auth';
 
-  constructor(private readonly http: HttpClient, private readonly router: Router) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
-  login(username: string, password: string) {
-    return this.http.post(`${this.apiUrl}/login`, { username, password });
+  setReturnUrl(returnUrl: any) {
+    localStorage.setItem('returnUrl', returnUrl);
+  }
+
+  loginWithGoogle() {
+    // Redirect to SOCApi Google login endpoint
+    window.location.href = `${this.apiUrl}/google-login`;
   }
 
   logout() {
-    localStorage.removeItem('token');
+    // Redirect to SOCApi Google logout endpoint
+    window.location.href = `${this.apiUrl}/google-logout`;
   }
 
-  isAuthenticated() {
-    try {
-      console.log('Checking authentication status...');
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found. User is not authenticated.');
-        return false;
-      }
-      // Decode the token to check its validity
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiration = payload.exp;
-      const now = Math.floor(Date.now() / 1000);
-      if (expiration < now) {
-        console.log('Token has expired. User is not authenticated.');
-        return false;
-      }
-      console.log('Token is valid. User is authenticated.');
-      return true;
-    }
-    catch (err){
-      console.log('Error decoding token:', err);
-    }
-    return false;
-  }
-
-  googleLogin() {
-    window.location.href = `${this.apiUrl}/google-login`;
-    if (window.location.href.includes('access_token')) {
-      const token = window.location.href
-        .split('access_token=')[1]
-        .split('&')[0];
-      this.handleCallback(token);
-    } else {
-      console.error('Access token not found in URL');
-    }
-  }
-
-  // auth.service.ts
-  handleCallback(token: string) {
-    this.http.get<{ token: string }>(`${this.apiUrl}/google-login/callback`, { withCredentials: true })
-    .subscribe({
-      next: (response) => {
-        localStorage.setItem('token', response.token);
-        this.router.navigate(['/dashboard']);
-        console.log('Google login successful, token stored:', response.token);
-      },
-      error: (error) => {
-        console.error('Error during Google login callback:', error);
-      },
-    })
+  isAuthenticated(): boolean {
+    // Check for a JWT token in localStorage (or sessionStorage)
+    const token = localStorage.getItem('jwtToken');
+    // Optionally, add more checks (e.g., token expiration)
+    return !!token;
   }
 }

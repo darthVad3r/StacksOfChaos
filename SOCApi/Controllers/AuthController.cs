@@ -46,41 +46,25 @@ namespace SOCApi.Controllers
         [HttpGet("google-login")]
         public async Task<IActionResult> GoogleLogin()
         {
-            try
+            // Accept a returnUrl query parameter from SOCWeb, default to "/" if not provided
+            var returnUrl = HttpContext.Request.Query["returnUrl"].ToString();
+            if (string.IsNullOrEmpty(returnUrl))
             {
-                Console.WriteLine("GoogleLogin called");
+                returnUrl = "/api/auth/google-callback"; // fallback
+            }
 
-                var authProperties = new AuthenticationProperties
-
+            var authProperties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleCallback), "Auth", new { returnUrl }, protocol: Request.Scheme),
+                // Set the redirect URI to the Google callback endpoint
+                Items =
                 {
-                    RedirectUri = Url.Action(nameof(GoogleCallback), "Auth"),
-                    // Set the redirect URI to the Google callback endpoint
-                    Items =
-                    {
-                        { "scheme", GoogleDefaults.AuthenticationScheme }
-                    }
-                };
+                    { "scheme", GoogleDefaults.AuthenticationScheme }
+                }
+            };
 
-                return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
-            }
-            catch (ArgumentNullException ex)
-            {
-                Console.WriteLine($"An ArgumentNullException was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
-                return BadRequest($"Redirect URI is null or empty: {ex.Message}");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Console.WriteLine($"An UnauthorizedAccessException was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
-                return Unauthorized($"User is already authenticated: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An exception was thrown from {nameof(GoogleLogin)} in {this.GetType().Name} " + ex.Message);
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-
+            return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
         }
-
         /// <summary>
         /// /// Callback endpoint for Google authentication.
         /// </summary>
@@ -97,7 +81,7 @@ namespace SOCApi.Controllers
         [Authorize]
         [HttpGet("google-callback")]
         [Route("google-callback")]
-        public async Task<IActionResult> GoogleCallback()
+        public async Task<IActionResult> GoogleCallback(string? returnUrl = "/api/auth/google-callback")
         {
             Console.WriteLine("GoogleCallback called");
             var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
@@ -110,13 +94,29 @@ namespace SOCApi.Controllers
             }
 
             var claims = result.Principal.Claims.ToList();
-            var userId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var googleId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
-            var jwtToken = GenerateJwtToken(userId, email);
+            var user = RegisterOrGetUser(email, name).Result; // Ensure this is awaited properly in production code
 
-            // return Ok(jwtToken);
-            return Ok("https://localhost:52454/dashboard");
+            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Missing user ID or email from Google claims.");
+            }
+
+            var jwtToken = GenerateJwtToken(googleId, email);
+
+            // Optionally, redirect back to SOCWeb with the JWT as a query param or fragment
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                // Example: return Redirect($"{returnUrl}?token={jwtToken}");
+                return Redirect($"{returnUrl}?token={jwtToken}");
+            }
+
+            var redirectUrl = Common.Endpoints.BASE_URL+"/dashboard?token=" + jwtToken;
+
+            return Redirect(redirectUrl);
         }
 
         /// <summary>
@@ -215,14 +215,10 @@ namespace SOCApi.Controllers
             var authProperties = new AuthenticationProperties
             {
                 RedirectUri = Url.Action(nameof(GoogleLogin), "Auth"),
-                // Set the redirect URI to the Google login endpoint
-                Items =
-                {
-                    { "scheme", GoogleDefaults.AuthenticationScheme }
-                }
+
             };
 
-            await HttpContext.SignOutAsync(GoogleDefaults.AuthenticationScheme, authProperties);
+            await HttpContext.SignOutAsync("Cookies", authProperties);
             await HttpContext.SignOutAsync(); // Sign out of the application
 
             var redirectUri = authProperties.RedirectUri ?? Url.Action(nameof(GoogleLogin), "Auth") ?? "/";
