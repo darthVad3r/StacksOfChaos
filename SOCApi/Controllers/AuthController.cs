@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.IdentityModel.Tokens;
+using SOCApi.Models;
 using SOCApi.Repositories;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -44,79 +46,69 @@ namespace SOCApi.Controllers
         /// <exception cref="UnauthorizedAccessException">Thrown when the user is already authenticated.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the redirect URI is null or empty.</exception>
         [HttpGet("google-login")]
-        public async Task<IActionResult> GoogleLogin()
+        public IActionResult GoogleLogin()
         {
-            // Accept a returnUrl query parameter from SOCWeb, default to "/" if not provided
-            var returnUrl = HttpContext.Request.Query["returnUrl"].ToString();
-            if (string.IsNullOrEmpty(returnUrl))
+            var user = User;
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                returnUrl = "/api/auth/google-callback"; // fallback
-            }
-
-            var authProperties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action(nameof(GoogleCallback), "Auth", new { returnUrl }, protocol: Request.Scheme),
-                // Set the redirect URI to the Google callback endpoint
-                Items =
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var email = user.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
                 {
-                    { "scheme", GoogleDefaults.AuthenticationScheme }
+                    return BadRequest("User ID or email is missing.");
                 }
-            };
+                var token = GenerateJwtToken(userId, email);
 
-            return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
+                Console.WriteLine($"Generated token: {token}");
+
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest("Failed to generate JWT token.");
+                }
+                var angularRedirectUrl = $"{Common.Endpoints.BASE_URL}/auth/callback?token={Uri.EscapeDataString(token)}";
+                return Redirect(angularRedirectUrl);
+            }
+            {
+                var userIdNew = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var emailNew = user.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userIdNew) || string.IsNullOrEmpty(emailNew))
+                {
+                    var authProperties = new AuthenticationProperties { RedirectUri = $"{Common.Endpoints.BASE_URL}/dashboard" };
+                    return Challenge(authProperties, GoogleDefaults.AuthenticationScheme);
+                }
+                var tokenNew = GenerateJwtToken(userIdNew, emailNew);
+                // Redirect to Angular callback route for token storage before dashboard guard
+                var angularRedirectUrlNew = $"https://localhost:52454/auth/callback?token={Uri.EscapeDataString(tokenNew)}";
+                var authPropertiesNew = new AuthenticationProperties { RedirectUri = angularRedirectUrlNew };
+                return Challenge(authPropertiesNew, GoogleDefaults.AuthenticationScheme);
+            }
         }
-        /// <summary>
-        /// /// Callback endpoint for Google authentication.
-        /// </summary>
-        /// <returns>
-        /// Returns a JWT token if authentication is successful.
-        /// </returns>
-        /// <remarks>
-        /// This method is called after the user has authenticated with Google. It retrieves the user's claims and generates a JWT token for the authenticated user.
-        /// The token is then returned to the client. If authentication fails, an error message is returned.
-        /// </remarks>
-        /// <exception cref="UnauthorizedAccessException">Thrown when authentication fails.</exception>
-        /// <exception cref="SecurityTokenException">Thrown when there is an error with the token generation.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when userId or email is null or empty.</exception>
-        [Authorize]
-        [HttpGet("google-callback")]
-        [Route("google-callback")]
-        public async Task<IActionResult> GoogleCallback(string? returnUrl = "/api/auth/google-callback")
+
+        [HttpGet("signin-google")]
+        [AllowAnonymous]
+        public IActionResult GoogleCallback()
         {
-            Console.WriteLine("GoogleCallback called");
-            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-
-            Console.WriteLine($"GoogleCallback result: {result}");
-
-            if (!result.Succeeded)
+            var user = User; // This will contain the authenticated user's claims
+            if (user?.Identity == null || !user.Identity.IsAuthenticated)
             {
-                return BadRequest("Google authentication failed.");
+            return Unauthorized("User is not authenticated.");
             }
-
-            var claims = result.Principal.Claims.ToList();
-            var googleId = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-            var user = RegisterOrGetUser(email, name).Result; // Ensure this is awaited properly in production code
-
-            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+            // Extract user information from claims
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = user.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email))
             {
-                return BadRequest("Missing user ID or email from Google claims.");
+            return BadRequest("User ID or email is missing.");
             }
-
-            var jwtToken = GenerateJwtToken(googleId, email);
-
-            // Optionally, redirect back to SOCWeb with the JWT as a query param or fragment
-            if (!string.IsNullOrEmpty(returnUrl))
+            // Generate JWT token
+            var token = GenerateJwtToken(userId, email);
+            if (string.IsNullOrEmpty(token))
             {
-                // Example: return Redirect($"{returnUrl}?token={jwtToken}");
-                return Redirect($"{returnUrl}?token={jwtToken}");
+            return BadRequest("Failed to generate JWT token.");
             }
-
-            var redirectUrl = Common.Endpoints.BASE_URL+"/dashboard?token=" + jwtToken;
-
-            return Redirect(redirectUrl);
+            // Redirect to Angular callback route for token storage before dashboard guard
+            var angularRedirectUrl = $"https://localhost:52454/auth/callback?token={Uri.EscapeDataString(token)}";
+            return Redirect(angularRedirectUrl);
         }
 
         /// <summary>
@@ -153,7 +145,8 @@ namespace SOCApi.Controllers
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, userId),
-                new Claim(ClaimTypes.Email, "test@example.com") // Replace with actual email if available
+                new Claim(ClaimTypes.Email, email), // Use actual email
+                new Claim("name", email ?? userId) // Optionally add a name claim if available
             };
 
             var token = new JwtSecurityToken(
@@ -196,7 +189,7 @@ namespace SOCApi.Controllers
             }
             // Assuming RegisterOrGetUserAsync returns the user ID
             // If it returns a User object, you might need to extract the ID from it
-            var userId = user.Id;
+            var userId = user.Id.ToString();
             return Ok(userId);
         }
 
@@ -210,19 +203,9 @@ namespace SOCApi.Controllers
         /// This method initiates the logout process for the user by redirecting them to the Google logout endpoint.
         /// </remarks>
         [HttpGet("google-logout")]
-        public async Task<IActionResult> GoogleLogout()
+        public IActionResult GoogleLogout()
         {
-            var authProperties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action(nameof(GoogleLogin), "Auth"),
-
-            };
-
-            await HttpContext.SignOutAsync("Cookies", authProperties);
-            await HttpContext.SignOutAsync(); // Sign out of the application
-
-            var redirectUri = authProperties.RedirectUri ?? Url.Action(nameof(GoogleLogin), "Auth") ?? "/";
-            return Redirect(redirectUri);
+            return SignOut(new AuthenticationProperties { RedirectUri = "/" }, CookieAuthenticationDefaults.AuthenticationScheme);
         }
     }
 }

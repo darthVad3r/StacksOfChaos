@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 @Component({
@@ -12,18 +11,18 @@ export class DashboardComponent implements OnInit {
   userName: string | null = null;
   userEmail: string | null = null;
 
-  constructor(private route: ActivatedRoute) { }
-
   ngOnInit() {
     const jwtHelper = new JwtHelperService();
-    this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      if (token) {
-        localStorage.setItem('token', token);
-        const decodedToken = jwtHelper.decodeToken(token);
-        this.userName = decodedToken['name'];
-        this.userEmail = decodedToken['email'];
-      }
-    });
+    const storedToken = localStorage.getItem('jwtToken');
+
+    if (storedToken) {
+      const decodedToken = jwtHelper.decodeToken(storedToken);
+      console.log('Decoded JWT Token:', decodedToken);
+      this.userName = decodedToken['name'];
+      this.userEmail = decodedToken['email'];
+    }
+    else {
+      console.error('No JWT token found in localStorage');
+    }
   }
 }

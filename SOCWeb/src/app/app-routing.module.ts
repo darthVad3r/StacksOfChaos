@@ -5,11 +5,13 @@ import { RegistrationFormComponent } from './registration-form/registration-form
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AuthCallbackComponent } from './auth-callback/auth-callback.component';
 
 const routes: Routes = [
   { path: 'title-search', component: TitleSearchFormComponent },
   { path: 'register', component: RegistrationFormComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'auth/callback', component: AuthCallbackComponent },
   {
     path: 'dashboard',
     component: DashboardComponent,

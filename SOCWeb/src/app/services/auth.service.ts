@@ -31,4 +31,17 @@ export class AuthService {
     // Optionally, add more checks (e.g., token expiration)
     return !!token;
   }
+
+  isLoggedIn(): boolean {
+    return this.isAuthenticated();
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('jwtToken');
+  }
+
+  getAuthHeaders(): { [header: string]: string } {
+    const token = this.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
 }

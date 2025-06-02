@@ -15,7 +15,7 @@ BEGIN
 		VALUES (@Email, @Name, GETDATE(), @Email);
 		SET @UserID = SCOPE_IDENTITY();
 	END
-	SELECT @UserID AS UserID;
+	SELECT @UserID AS UserID, @Email as Email, @UserID as UserID;
 END
 GO
 
