@@ -1,7 +1,5 @@
 using Microsoft.OpenApi.Models;
 using SOCApi.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using SOCApi.Repositories;
 
 namespace SOCApi;
@@ -59,29 +57,12 @@ public static class Program
             options.Secure = CookieSecurePolicy.Always;
         });
 
-        // Ensure required configuration values are present
-        var googleClientId = configuration["Google:ClientId"];
-        var googleClientSecret = configuration["Google:ClientSecret"];
-
-        if (string.IsNullOrWhiteSpace(googleClientId))
-            throw new InvalidOperationException("Google:ClientId is not configured.");
-        if (string.IsNullOrWhiteSpace(googleClientSecret))
-            throw new InvalidOperationException("Google:ClientSecret is not configured.");
-
         services.AddAuthentication(options =>
         {
             options.DefaultScheme = "Cookies";
             options.DefaultSignInScheme = "Cookies";
-            options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
         })
-        .AddCookie("Cookies")
-        .AddGoogle(options =>
-        {
-            options.ClientId = googleClientId;
-            options.ClientSecret = googleClientSecret;
-            options.SignInScheme = "Cookies";
-            options.CallbackPath = "/signin-google";
-        });
+        .AddCookie("Cookies");
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
