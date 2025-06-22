@@ -12,6 +12,11 @@ namespace SOCApi.Repositories
             _connectionString = connectionString;
         }
 
+        public Task GetUserByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<User> RegisterOrGetUserAsync(string email, string name)
         {
             using (var connection = new SqlConnection(_connectionString))

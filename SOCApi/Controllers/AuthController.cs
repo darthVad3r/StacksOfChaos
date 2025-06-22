@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Data.SqlClient;
+using SOCApi.Models;
 using SOCApi.Repositories;
+using System.Data;
+using System.Text.Json;
 
 namespace SOCApi.Controllers
 {
@@ -80,5 +84,80 @@ namespace SOCApi.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Sign in a user with email and password.
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns>
+        /// Valid user object if sign-in is successful, or an error message if sign-in fails.
+        /// </returns>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        public async Task<IActionResult> SignIn(string email, string password)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                {
+                    return BadRequest("Email and password are required.");
+                }
+
+                var user = await GetUserByEmailAsync(email, password);
+
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+                // If user is found, proceed with sign-in logic
+                // Convert user to a json object
+                var stringUser = JsonSerializer.Serialize(user);
+
+                // For example, you might want to generate a token or set a session
+                return Ok("Sign-in successful.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in {nameof(SignIn)}: {ex.Message}");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns>
+        /// 
+        /// </returns>
+        public async Task<User> GetUserByEmailAsync(string email, string password)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(Common.StoredProcedures.GetOrCreateUser, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.AddWithValue("@Password", password);
+
+            await connection.OpenAsync();
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    return new User
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        Email = reader.GetString(reader.GetOrdinal("Email")),
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+
+                        // Map other properties as needed
+                    };
+                }
+            }
+            return null;
+        }
+
     }
 }
