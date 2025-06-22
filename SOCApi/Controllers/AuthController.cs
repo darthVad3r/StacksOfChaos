@@ -5,6 +5,7 @@ using SOCApi.Repositories;
 
 namespace SOCApi.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase

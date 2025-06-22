@@ -45,7 +45,9 @@ namespace SOCApi.Services
             }
             catch (JsonException jsonEx)
             {
-                _logger.LogError(jsonEx, "An error occurred while deserializing the JSON response: {JsonResponse}", jsonResponse);
+                // Sanitize jsonResponse to prevent log forging
+                var sanitizedJsonResponse = jsonResponse.Replace("\r", "\\r").Replace("\n", "\\n");
+                _logger.LogError(jsonEx, "An error occurred while deserializing the JSON response: {JsonResponse}", sanitizedJsonResponse);
             }
 
             if (searchResult == null)
