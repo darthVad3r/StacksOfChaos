@@ -62,7 +62,20 @@ public static class Program
             options.DefaultScheme = "Cookies";
             options.DefaultSignInScheme = "Cookies";
         })
-        .AddCookie("Cookies");
+        .AddCookie("Cookies", options =>
+        {
+            // For APIs, suppress redirect to /Account/Login and return 401 instead
+            options.Events.OnRedirectToLogin = context =>
+            {
+                context.Response.StatusCode = 401;
+                return Task.CompletedTask;
+            };
+            options.Events.OnRedirectToAccessDenied = context =>
+            {
+                context.Response.StatusCode = 403;
+                return Task.CompletedTask;
+            };
+        });
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)

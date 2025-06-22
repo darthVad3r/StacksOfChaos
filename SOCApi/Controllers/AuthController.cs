@@ -37,25 +37,47 @@ namespace SOCApi.Controllers
         /// If the user already exists, it retrieves the existing user's ID. The user ID is then returned to the client.
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown when email or name is null or empty.</exception>
-        [Authorize]
         [HttpPost("register-or-get-user")]
         [Route("register-or-get-user")]
-        public async Task<IActionResult> RegisterOrGetUser(string email, string name)
+        public async Task<IActionResult> RegisterOrGetUser(string user)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
+            try
             {
-                return BadRequest("Email and name are required.");
-            }
+                // Parse the user parameter to extract email and name
+                var userData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(user);
+                if (userData == null || !userData.TryGetValue("email", out var email) || !userData.TryGetValue("name", out var name))
+                {
+                    return BadRequest("Invalid user data. Please provide both email and name.");
+                }
+                {
+                    Console.WriteLine($"RegisterOrGetUser called with email: {email}, name: {name}");
+                    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
+                    {
+                        return BadRequest("Email and name are required.");
+                    }
 
-            var user = await _userRepository.RegisterOrGetUserAsync(email, name);
-            if (user == null)
-            {
-                return BadRequest("User registration failed.");
+                    var registeredUser = await _userRepository.RegisterOrGetUserAsync(email, name);
+                    if (registeredUser == null)
+                    {
+                        return BadRequest("User registration failed.");
+                    }
+                    // Assuming RegisterOrGetUserAsync returns the user ID
+                    // If it returns a User object, you might need to extract the ID from it
+                    var userId = registeredUser.Id.ToString();
+                    return Ok(userId);
+                }
             }
-            // Assuming RegisterOrGetUserAsync returns the user ID
-            // If it returns a User object, you might need to extract the ID from it
-            var userId = user.Id.ToString();
-            return Ok(userId);
+            catch (ArgumentNullException ex)
+            {
+                Console.WriteLine($"ArgumentNullException in RegisterOrGetUser: {ex.Message}");
+                return BadRequest("Email and name cannot be null or empty.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in RegisterOrGetUser: {ex.Message}");
+                // Log the exception (not implemented here)
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
         }
     }
 }

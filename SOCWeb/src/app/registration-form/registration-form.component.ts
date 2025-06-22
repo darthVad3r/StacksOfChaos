@@ -28,11 +28,23 @@ constructor(private http: HttpClient) {}
     password: this.password
   }
 
-  this.http.post('http://localhost:3000/register', user)
-    .subscribe((response) => {
+  // create a new user or get existing user
+  this.http.post('https://localhost:5001/api/auth/register-or-get-user', user)
+    .subscribe(() => {
       alert('User registered successfully');
+      // Optionally, redirect to login or home page
+      // this.router.navigate(['/login']);
     }, (error) => {
+      alert('An error occurred while registering the user ' +  error.message.toString());
       console.error('Error registering user', error);
     });
   }
+
+  // this.http.post('https://localhost:5001/api/auth/register-or-get-user', user)
+  //   .subscribe(() => {
+  //     alert('User registered successfully');
+  //   }, (error) => {
+  //     console.error('Error registering user', error);
+  //   });
+  // }
 }
