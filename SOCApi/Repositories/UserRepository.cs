@@ -9,42 +9,47 @@ namespace SOCApi.Repositories
 
         public UserRepository(string connectionString)
         {
-            _connectionString = connectionString;
+            _connectionString = "Server=localhost;Database=SOCData;Integrated Security=True;TrustServerCertificate=True;";
         }
 
-        public Task GetUserByEmailAsync(string email)
+        public async Task<User> RegisterOrGetUserAsync(string email, string name, string password)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task<User> RegisterOrGetUserAsync(string email, string name)
-        {
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-                var command = Common.StoredProcedures.GetOrCreateUser;
-                using var sqlCommand = new SqlCommand(command, connection)
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    CommandType = System.Data.CommandType.StoredProcedure
-                };
-                sqlCommand.Parameters.AddWithValue("@Email", email);
-                sqlCommand.Parameters.AddWithValue("@Name", name);
-
-                using (var reader = await sqlCommand.ExecuteReaderAsync())
-                {
-                    if (await reader.ReadAsync())
+                    await connection.OpenAsync();
+                    var command = Common.StoredProcedures.GetOrCreateUser;
+                    using var sqlCommand = new SqlCommand(command, connection)
                     {
-                        return new User
+                        CommandType = System.Data.CommandType.StoredProcedure
+                    };
+                    sqlCommand.Parameters.AddWithValue("@Email", email);
+                    sqlCommand.Parameters.AddWithValue("@Name", name);
+                    sqlCommand.Parameters.AddWithValue("@Password", password);
+
+                    using (var reader = await sqlCommand.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
                         {
-                            Id = reader.GetInt32(0),
-                            Email = reader.GetString(1),
-                            Name = reader.GetString(2),
-                            // Map other properties as needed
-                        };
+                            return new User
+                            {
+                                Id = reader.GetInt32(0),
+                                Email = reader.GetString(1),
+                                Name = reader.GetString(2),
+                                // Map other properties as needed
+                            };
+                        }
                     }
                 }
+                return null;
+
             }
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in {nameof(RegisterOrGetUserAsync)}: {ex.Message}");
+                return null;
+            }
         }
 
         // Implement other methods similarly...

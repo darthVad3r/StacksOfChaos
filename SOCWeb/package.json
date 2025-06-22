@@ -21,13 +21,15 @@
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
     "@auth0/angular-jwt": "^5.2.0",
-    "angular": "^1.8.3",
+    "ajv": "^8.17.1",
     "angular-oauth2-oidc": "^19.0.0",
     "angularcli": "^6.0.1",
     "jest-editor-support": "*",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "typescript": ">=5.5 <5.9",
+    "uuid": "^11.1.0",
+    "yargs-parser": "^22.0.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

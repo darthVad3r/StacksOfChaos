@@ -49,19 +49,20 @@ namespace SOCApi.Controllers
             try
             {
                 // Parse the user parameter to extract email and name
-                var userData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(user);
-                if (userData == null || !userData.TryGetValue("email", out var email) || !userData.TryGetValue("name", out var name))
+                var userData = JsonSerializer.Deserialize<Dictionary<string, string>>(user);
+                if (userData == null || !userData.TryGetValue("email", out var email) || !userData.TryGetValue("name", out var name) || !userData.TryGetValue("password", out var password))
                 {
-                    return BadRequest("Invalid user data. Please provide both email and name.");
+                    Console.WriteLine($"From {nameof(RegisterOrGetUser)}: Invalid user data received.");
+                    return BadRequest("Invalid user data. Please provide a valid email, password and name.");
                 }
                 {
-                    Console.WriteLine($"RegisterOrGetUser called with email: {email}, name: {name}");
-                    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
+                    Console.WriteLine($"{nameof(RegisterOrGetUser)} called with email: {email}, name: {name}");
+                    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password))
                     {
-                        return BadRequest("Email and name are required.");
+                        return BadRequest("Email, password, and name are required.");
                     }
 
-                    var registeredUser = await _userRepository.RegisterOrGetUserAsync(email, name);
+                    var registeredUser = await _userRepository.RegisterOrGetUserAsync(email, name, password);
                     if (registeredUser == null)
                     {
                         return BadRequest("User registration failed.");
@@ -79,7 +80,7 @@ namespace SOCApi.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in RegisterOrGetUser: {ex.Message}");
+                Console.WriteLine($"Error in {nameof(RegisterOrGetUser)}: {ex.Message}");
                 // Log the exception (not implemented here)
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
