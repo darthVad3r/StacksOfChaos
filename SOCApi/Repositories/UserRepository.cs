@@ -54,38 +54,43 @@ namespace SOCApi.Repositories
             return null;
         }
 
-        private async Task<User> GetUserByEmailAsync(string email, string password)
+        public async Task<User> GetUserByEmailAsync(string email, string password)
         {
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-                var command = Common.StoredProcedures.GetOrCreateUser;
-                using var sqlCommand = new SqlCommand(command, connection)
-                {
-                    CommandType = System.Data.CommandType.StoredProcedure
-                };
-                sqlCommand.Parameters.AddWithValue("@Email", email);
-                sqlCommand.Parameters.AddWithValue("@Password", password);
-
-                using var reader = await sqlCommand.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new User
-                    {
-                        Id = reader.GetInt32(0),
-                        Email = reader.GetString(1),
-                        Name = reader.GetString(2),
-                        // Map other properties as needed
-                    };
-                }
-                return null;
+                return await ExecuteGetUserByEmailAsync(email, password);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in {MethodName}", nameof(GetUserByEmailAsync));
                 return null;
             }
+        }
+
+        private async Task<User> ExecuteGetUserByEmailAsync(string email, string password)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+            var command = Common.StoredProcedures.GetOrCreateUser;
+            using var sqlCommand = new SqlCommand(command, connection)
+            {
+                CommandType = System.Data.CommandType.StoredProcedure
+            };
+            sqlCommand.Parameters.AddWithValue("@Email", email);
+            sqlCommand.Parameters.AddWithValue("@Password", password);
+
+            using var reader = await sqlCommand.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new User
+                {
+                    Id = reader.GetInt32(0),
+                    Email = reader.GetString(1),
+                    Name = reader.GetString(2),
+                    // Map other properties as needed
+                };
+            }
+            return null;
         }
 
         // Implement other methods similarly...
