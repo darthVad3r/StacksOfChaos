@@ -1,10 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Tokens;
 using SOCApi.Models;
-using SOCApi.Repositories;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 
 namespace SOCApi.Controllers
@@ -14,18 +19,14 @@ namespace SOCApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
-        private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly string _connectionString;
-        private readonly IUserRepository _userRepository;
 
-        public AuthController(IConfiguration config, IUrlHelperFactory urlHelperFactory, IUserRepository userRepository)
+        public AuthController(IConfiguration config, UserManager<IdentityUser> userManager)
         {
             _config = config;
-            _urlHelperFactory = urlHelperFactory;
-            _userRepository = userRepository;
 
-            //_connectionString = _config.GetConnectionString("DefaultConnection");
-            _connectionString = "Server=localhost;Database=SOCData;Integrated Security=True;TrustServerCertificate=True;";
+            string getConnectionString = Common.GetConnectionString();
+            _connectionString = getConnectionString;
         }
 
         /// <summary>
@@ -44,22 +45,25 @@ namespace SOCApi.Controllers
         [Authorize]
         [HttpPost("register-or-get-user")]
         [Route("register-or-get-user")]
-        public async Task<IActionResult> RegisterOrGetUser(string email, string name)
+        public async Task<IActionResult> RegisterOrGetUser(string signInCredentials)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(signInCredentials) || string.IsNullOrEmpty(signInCredentials))
             {
                 return BadRequest("Email and name are required.");
             }
 
-            var user = await _userRepository.RegisterOrGetUserAsync(email, name);
-            if (user == null)
-            {
-                return BadRequest("User registration failed.");
-            }
+            var user = JsonSerializer.Deserialize<User>(signInCredentials);
+
+            var email = user.Email;
+            var password = user.Password;
+
+            var loggedInUser = GetUserByEmailAsync(email, password);
+
+            var loggedInUserJson = JsonSerializer.Serialize(loggedInUser);
+
             // Assuming RegisterOrGetUserAsync returns the user ID
             // If it returns a User object, you might need to extract the ID from it
-            var userId = user.Id.ToString();
-            return Ok(userId);
+            return Ok(loggedInUserJson);
         }
 
         /// <summary>
@@ -73,27 +77,25 @@ namespace SOCApi.Controllers
         /// <remarks>
         /// 
         /// </remarks>
-        public async Task<IActionResult> SignIn(string email, string password)
+        [HttpPost("login")]
+        public async Task<IActionResult> LogIn([FromBody] User userModel)
         {
             try
             {
-                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest("Email and password are required.");
+                    return BadRequest(new { message = "Invalid input data" });
                 }
 
-                var user = await GetUserByEmailAsync(email, password);
-
-                if (user == null)
+                var user = await _userManager.FindByEmailAsync(userModel.Email);
+                if (userModel == null || !await _userManager.CheckPasswordAsync(user, userModel.Password))
                 {
-                    return NotFound("User not found.");
+                    return Unauthorized(new { message = "Invalid email or password" });
                 }
-                // If user is found, proceed with sign-in logic
-                // Convert user to a json object
-                var stringUser = JsonSerializer.Serialize(user);
 
-                // For example, you might want to generate a token or set a session
-                return Ok("Sign-in successful.");
+                var token = GenerateJwtToken(user);
+
+                return Ok(new { token });
             }
             catch (Exception ex)
             {
@@ -128,13 +130,34 @@ namespace SOCApi.Controllers
                         Id = reader.GetInt32(reader.GetOrdinal("Id")),
                         Email = reader.GetString(reader.GetOrdinal("Email")),
                         Name = reader.GetString(reader.GetOrdinal("Name")),
-
                         // Map other properties as needed
                     };
                 }
             }
             return null;
         }
+
+        private string GenerateJwtToken(IdentityUser user)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }   
 
     }
 }

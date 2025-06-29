@@ -1,13 +1,39 @@
-<div>
-  <h1>Login</h1>
-  <button mat-raised-button color="primary" (click)="loginWithGoogle()">
-    <img src="assets/google-icon.png" alt="Google" style="width: 20px; margin-right: 8px;">
-    Login with Google
-  </button>
-</div>
+<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+  <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign In</h2>
+  <form #loginForm="ngForm" (ngSubmit)="onSubmit()">
+    <div class="mb-4">
+        <label for="email">Email</label>
+        <input
+               type="email"
+               id="email"
+               name="email"
+               [(ngModel)]="model.email"
+               required
+               email
+               placeholder="Enter your email"
+        >
+    </div>
+    <div class="mb-6">
+        <label for="password">Password</label>
+        <input matInput
+               type="password"
+               id="password"
+               name="password"
+               [(ngModel)]="model.password"
+               required
+               minlength="6"
+               placeholder="Enter your password">
 
-<div class="flex justify-center items-center h-screen">
-  <button (click)="loginWithGoogle()" class="bg-blue-500 text-white px-4 py-2 rounded">
-    Login with Google
-  </button>
+    </div>
+    <button 
+      class="btn btn-primary"
+      type="submit"
+      [disabled]="loginForm.invalid"
+    >
+      Sign In
+    </button>
+  </form>
+  <p class="mt-4 text-center text-sm text-gray-600">
+    Don't have an account? <a href="/signup" class="text-indigo-600 hover:underline">Sign up</a>
+  </p>
 </div>

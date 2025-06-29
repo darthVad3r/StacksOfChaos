@@ -1,0 +1,11 @@
+﻿namespace SOCApi.Interfaces
+{
+    public interface IAuthorizationService
+    {
+        public void Login(string username, string password);
+        public void Logout();
+        public bool IsUserAuthenticated(string username, string password);
+        public bool IsUserAuthorized(string username, string password);
+        public void ValidateUser(string username, string password);
+    }
+}

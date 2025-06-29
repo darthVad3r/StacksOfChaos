@@ -9,7 +9,11 @@ import { Router } from '@angular/router';
 export class AuthService {
   private readonly apiUrl = 'https://localhost:5001/api/auth';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
+
+  signIn(email: string, password: string) {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { email, password });
+  }
 
   setReturnUrl(returnUrl: any) {
     localStorage.setItem('returnUrl', returnUrl);
