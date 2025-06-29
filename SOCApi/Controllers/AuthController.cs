@@ -14,6 +14,7 @@ using System.Text.Json;
 
 namespace SOCApi.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -42,15 +43,25 @@ namespace SOCApi.Controllers
         /// If the user already exists, it retrieves the existing user's ID. The user ID is then returned to the client.
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown when email or name is null or empty.</exception>
-        [Authorize]
         [HttpPost("register-or-get-user")]
         [Route("register-or-get-user")]
         public async Task<IActionResult> RegisterOrGetUser(string signInCredentials)
         {
-            if (string.IsNullOrEmpty(signInCredentials) || string.IsNullOrEmpty(signInCredentials))
+            try
             {
-                return BadRequest("Email and name are required.");
-            }
+                // Parse the user parameter to extract email and name
+                var userData = JsonSerializer.Deserialize<Dictionary<string, string>>(user);
+                if (userData == null || !userData.TryGetValue("email", out var email) || !userData.TryGetValue("name", out var name) || !userData.TryGetValue("password", out var password))
+                {
+                    Console.WriteLine($"From {nameof(RegisterOrGetUser)}: Invalid user data received.");
+                    return BadRequest("Invalid user data. Please provide a valid email, password and name.");
+                }
+                {
+                    Console.WriteLine($"{nameof(RegisterOrGetUser)} called with email: {email}, name: {name}");
+                    if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(password))
+                    {
+                        return BadRequest("Email, password, and name are required.");
+                    }
 
             var user = JsonSerializer.Deserialize<User>(signInCredentials);
 

@@ -39,23 +39,28 @@ namespace SOCApi.Controllers
                     _logger.LogError("Search string is empty");
                     return BadRequest("Search string cannot be empty");
                 }
+
+                // Sanitize searchString to prevent log forging
+                string sanitizedSearchString = searchString.Replace("\r", "").Replace("\n", "");
+
                 // Implement logic to verify that the search string is valid and does not pose a security risk.
-                var title = await _bookSearchService.SearchTitlesAsync(searchString);
+                var title = await _bookSearchService.SearchTitlesAsync(sanitizedSearchString);
 
                 if (title == null || title.Docs.Length == 0)
                 {
-                    _logger.LogInformation("No titles found for search string {SearchString}", searchString);
+                    // Use sanitizedSearchString to prevent log forging
+                    _logger.LogInformation("No titles found for search string {SearchString}", sanitizedSearchString);
                     return NotFound("No titles found");
                 }
 
                 var titleOutput = title.Docs[0].AuthorName;
-
                 return Ok(titleOutput);
-
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", searchString);
+                // Sanitize searchString to prevent log forging
+                string sanitizedSearchString = searchString?.Replace("\r", "").Replace("\n", "");
+                _logger.LogError(ex, "An error occurred while searching for titles with search string {SearchString}", sanitizedSearchString);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while searching for titles");
             }
         }
