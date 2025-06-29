@@ -43,13 +43,6 @@ public static class Program
     {
         services.AddScoped<BookSearchService>();
         // Add other application services here
-        services.AddScoped<IUserRepository, UserRepository>(provider =>
-        {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException("DefaultConnection connection string is not configured.");
-            return new UserRepository(connectionString);
-        });
 
         services.Configure<CookiePolicyOptions>(options =>
         {
