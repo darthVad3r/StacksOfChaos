@@ -1,6 +1,7 @@
 ﻿using SOCApi.Models;
+using SOCApi.Interfaces;
 
-namespace SOCApi.Interfaces
+namespace SOCApi.Services
 {
     public class PermissionService : IPermissionService
     {

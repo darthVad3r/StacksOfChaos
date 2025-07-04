@@ -1,5 +1,6 @@
-﻿
-namespace SOCApi.Interfaces
+﻿using SOCApi.Interfaces;
+
+namespace SOCApi.Services
 {
     public class EmailService : IEmailService
     {

@@ -1,124 +1,128 @@
-﻿using Microsoft.Data.SqlClient;
-using Newtonsoft.Json;
-using SOCApi.Models;
-using SOCApi.ViewModels;
+﻿using SOCApi.Models;
 using System.Data;
+using Microsoft.Data.SqlClient;
+using System.Text.Json;
+using SOCApi.Interfaces;
 
 namespace SOCApi.Services
 {
     public class UserService : IUserService
     {
+        private readonly ILogger<UserService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IPasswordService _passwordService;
         private readonly string _connectionString;
-        public UserService(string connectionString)
+
+        public UserService(ILogger<UserService> logger,
+            IEmailService emailService,
+            IPasswordService passwordService,
+            string connectionString)
         {
-            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+            _logger = logger;
+            _emailService = emailService;
+            _passwordService = passwordService;
+            string getConnectionString = Common.GetConnectionString();
+            _connectionString = getConnectionString;
+            _connectionString = connectionString;
         }
-        public Task<User> LoginAsync(LoginRequest loginRequest)
+
+        public async Task<User> CreateNewUserAccountAsync(string userCredentials)
         {
-            throw new NotImplementedException();
-        }
-        public Task<User> LogOutAsync(string token)
-        {
-            throw new NotImplementedException();
-        }
-        public async Task<User> RegisterUserAsync(string request)
-        {
-            try
+            // Implementation for creating a new user account
+            var newUser = JsonSerializer.Deserialize<User>(userCredentials);
+            if (newUser == null)
             {
-                ArgumentNullException.ThrowIfNull(request);
+                _logger.LogError("Failed to deserialize user credentials.");
+                throw new ArgumentException("Invalid user credentials provided.");
+            }
 
-                var registerRequest = JsonConvert.DeserializeObject<RegisterRequest>(request);
+            var username = newUser.Username;
+            var password = newUser.Password;
+            var emailAddress = newUser.EmailAddress;
 
-                if (registerRequest == null)
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(emailAddress))
+            {
+                _logger.LogError("User tried to create an account with a missing username, email address or password");
+                throw new ArgumentException("Username, password, and email address cannot be empty.");
+            }
+
+            if (!await IsUsernameUnique(username))
+            {
+                // This is a blocking call, consider using async all the way up
+                _logger.LogWarning($"Username '{username}' is already taken.");
+                throw new InvalidOperationException($"Username '{username}' is already taken.");
+            }
+
+            if (!await _emailService.IsEmailUnique(emailAddress))
+            {
+                _logger.LogWarning($"Email '{emailAddress}' is already registered.");
+                throw new InvalidOperationException($"Email '{emailAddress}' is already registered.");
+            }
+
+            newUser.Username = username;
+            newUser.EmailAddress = emailAddress;
+            newUser.CreatedAt = DateTime.UtcNow;
+            newUser.Password = _passwordService.HashPassword(password);
+
+            return await Task.FromResult(newUser);
+        }
+
+        public Task<bool> DeleteUserAsync(int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email, string password)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(Common.StoredProcedures.GetOrCreateUser, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@Email", email);
+            command.Parameters.AddWithValue("@Password", password);
+
+            await connection.OpenAsync();
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
                 {
-                    ArgumentNullException.ThrowIfNull(registerRequest, nameof(request));
-                    throw new ArgumentException("Passwords do not match");
+                    return new User
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        EmailAddress = reader.GetString(reader.GetOrdinal("Email")),
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        // Map other properties as needed
+                    };
                 }
-
-                // Hash the password
-                //var hashedPassword = HashPassword(registerRequest.Password);
-
-                // Check if the user already exists
-                var userExists = await CheckUserExistAsync(registerRequest.Email);
-
-                //var user = new User
-                //{
-                //    Username = registerRequest.Username,
-                //    Email = registerRequest.Email,
-                //    Password = hashedPassword
-                //};
-
-                //var newUser = await AddNewUserToDatabaseAsync(user);
-
-                //await AddNewUserToDatabaseAsync(user);
-
-                return null;
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"An error occurred during registration: {ex.Message}", ex);
-            }
+            return null;
         }
-        public Task<User> UpdateUserAsync(User user)
+
+        public Task<User?> GetUserByIdAsync(int userId)
         {
             throw new NotImplementedException();
         }
-        public Task<User> DeleteUserAsync(User user)
+
+        public Task<User?> GetUserByUsernameAsync(string username)
         {
             throw new NotImplementedException();
         }
-        public Task<bool> CheckUserExistAsync(string email)
+
+        public Task<bool> IsUsernameUnique(string username)
         {
             throw new NotImplementedException();
         }
-        private static string HashPassword(string password)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-            var hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
-        }
-        private async Task AddNewUserToDatabaseAsync(User user)
-        {
-            try
-            {
-                var bytes = System.Text.Encoding.UTF8.GetBytes(user.Password);
-                var hash = System.Security.Cryptography.SHA256.HashData(bytes);
-                var query = "EXEC usp_AddNewUser @Username, @Email, @Password";
-                await using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-                await using var command = new SqlCommand(query, connection);
-                command.Parameters.Add(new SqlParameter("@Username", SqlDbType.NVarChar) { Value = user.Username });
-                command.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar) { Value = user.Email });
-                command.Parameters.Add(new SqlParameter("@Password", SqlDbType.NVarChar) { Value = Convert.ToBase64String(hash) });
-                await command.ExecuteNonQueryAsync();
-            }
-            catch (SqlException ex)
-            {
-                throw new DataException("A database error occurred while adding a new user to the database", ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidOperationException("An invalid operation occurred while adding a new user to the database", ex);
-            }
-        }
-        public Task<User> RegisterAsync(RegisterRequest registerRequest)
+
+        public Task<bool> UpdateUserAsync(User user)
         {
             throw new NotImplementedException();
         }
-        public Task<string> GenerateJwtToken(User user)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<bool> ValidateCredentials(string username, string password)
-        {
-            throw new NotImplementedException();
-        }
-        Task<string> IUserService.HashPassword(string password)
-        {
-            throw new NotImplementedException();
-        }
-        Task IUserService.AddNewUserToDatabaseAsync(User user)
+
+        public Task<bool> UpdateUserPasswordAsync(int userId, string newPassword)
         {
             throw new NotImplementedException();
         }

@@ -1,4 +1,7 @@
-﻿namespace SOCApi.Interfaces
+﻿using Microsoft.AspNetCore.Identity;
+using SOCApi.Models;
+
+namespace SOCApi.Interfaces
 {
     public interface IAuthorizationService
     {
@@ -6,6 +9,6 @@
         public void Logout();
         public bool IsUserAuthenticated(string username, string password);
         public bool IsUserAuthorized(string username, string password);
-        public void ValidateUser(string username, string password);
+        public Task<IdentityUser<User>> ValidateUser(string username, string password);
     }
 }

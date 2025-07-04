@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto.Generators;
+using SOCApi.Interfaces;
 
-namespace SOCApi.Interfaces
+namespace SOCApi.Services
 {
     public class PasswordService : IPasswordService
     {

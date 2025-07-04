@@ -9,7 +9,7 @@ namespace SOCApi.Interfaces
         public Task<IEnumerable<User>> GetAllUsersAsync();
         public Task<User?> GetUserByIdAsync(int userId);
         public Task<User?> GetUserByUsernameAsync(string username);
-        public Task<User?> GetUserByEmailAsync(string email);
+        public Task<User?> GetUserByEmailAsync(string email, string password);
         public Task<bool> IsUsernameUnique(string username);
         public Task<bool> UpdateUserAsync(User user);
         public Task<bool> UpdateUserPasswordAsync(int userId, string newPassword);

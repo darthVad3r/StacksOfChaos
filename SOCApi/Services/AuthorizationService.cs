@@ -1,4 +1,9 @@
-﻿namespace SOCApi.Interfaces
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SOCApi.Interfaces;
+using SOCApi.Models;
+
+namespace SOCApi.Services
 {
     public class AuthorizationService : IAuthorizationService
     {
@@ -22,7 +27,7 @@
             throw new NotImplementedException();
         }
 
-        public void ValidateUser(string username, string password)
+        public async Task<IdentityUser<IdentityUser>> ValidateUser(string username, string password)
         {
             throw new NotImplementedException();
         }
