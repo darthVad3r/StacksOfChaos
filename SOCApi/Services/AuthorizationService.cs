@@ -17,7 +17,7 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public void Login(string username, string password)
+        public async Task<string> LoginAsync(string username, string password)
         {
             throw new NotImplementedException();
         }
@@ -27,8 +27,11 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public async Task<IdentityUser<IdentityUser>> ValidateUser(string username, string password)
+        public async Task<IdentityUser> ValidateUser(string username, string password)
         {
+            // This method should validate the user credentials against the database.
+
+
             throw new NotImplementedException();
         }
     }
