@@ -5,10 +5,10 @@ namespace SOCApi.Interfaces
 {
     public interface IAuthorizationService
     {
-        public Task<string> LoginAsync(string username, string password);
-        public void Logout();
+        public Task<AuthResponse> LoginAsync(string username, string password);
         public bool IsUserAuthenticated(string username, string password);
         public bool IsUserAuthorized(string username, string password);
         public Task<IdentityUser> ValidateUser(string username, string password);
+        public string GenerateJwtToken(IdentityUser user);
     }
 }

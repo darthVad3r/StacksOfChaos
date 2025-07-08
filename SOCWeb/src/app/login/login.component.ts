@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class LoginComponent {
   model = { email: '', password: '' };
 
-  constructor(private authService: AuthService) { }
+  constructor(private readonly authService: AuthService) { }
 
   onSubmit() {
     this.authService.signIn(this.model.email, this.model.password).subscribe({

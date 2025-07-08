@@ -23,7 +23,8 @@ namespace SOCApi
 
         public static class StoredProcedures
         {
-            public const string GetOrCreateUser = "usp_GetOrCreateUser";
+            public const string GET_OR_CREATE_USER = "usp_GetOrCreateUser";
+            public const string VERIFY_IF_USER_EXISTS = "usp_VerifyIfUserExists";
         }
     }
 }
