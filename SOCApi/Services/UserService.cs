@@ -1,8 +1,8 @@
 ﻿using SOCApi.Models;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Text.Json;
 using SOCApi.Interfaces;
+using SOCApi.Exceptions;
 
 namespace SOCApi.Services
 {
@@ -21,24 +21,20 @@ namespace SOCApi.Services
             _logger = logger;
             _emailService = emailService;
             _passwordService = passwordService;
-            string getConnectionString = Common.GetConnectionString();
-            _connectionString = getConnectionString;
             _connectionString = connectionString;
         }
 
-        public async Task<User> CreateNewUserAccountAsync(string userCredentials)
+        public async Task<UserCreatedResponse> CreateNewUserAccountAsync(UserCredentials newUserCredentials)
         {
-            // Implementation for creating a new user account
-            var newUser = JsonSerializer.Deserialize<UserCredentials>(userCredentials);
-            if (newUser == null)
+            if (newUserCredentials == null)
             {
                 _logger.LogError("Failed to deserialize user credentials.");
                 throw new ArgumentException("Invalid user credentials provided.");
             }
 
-            var username = newUser.Username;
-            var password = newUser.Password;
-            var emailAddress = newUser.Emaild;
+            var username = newUserCredentials.Username;
+            var password = newUserCredentials.Password;
+            var emailAddress = newUserCredentials.Email;
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(emailAddress))
             {
@@ -48,22 +44,44 @@ namespace SOCApi.Services
 
             if (!await IsUsernameUnique(username))
             {
-                // This is a blocking call, consider using async all the way up
                 _logger.LogWarning($"Username '{username}' is already taken.");
-                throw new InvalidOperationException($"Username '{username}' is already taken.");
+                throw new DuplicateUsernameException(username);
             }
 
             if (!await _emailService.IsEmailUnique(emailAddress))
             {
                 _logger.LogWarning($"Email '{emailAddress}' is already registered.");
-                throw new InvalidOperationException($"Email '{emailAddress}' is already registered.");
+                throw new DuplicateEmailException(emailAddress);
             }
 
-            newUser.Username = username;
-            newUser.Email = emailAddress;
-            newUser.Password = _passwordService.HashPassword(password);
+            var passwordHash = _passwordService.HashPassword(password);
 
-            return await Task.FromResult(newUser);
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(Common.StoredProcedures.CREATE_USER, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@Username", username);
+            command.Parameters.AddWithValue("@Password", passwordHash);
+            command.Parameters.AddWithValue("@Email", emailAddress);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+            if (result == null || result == DBNull.Value)
+            {
+                _logger.LogError("Failed to create user account.");
+                throw new InvalidOperationException("Failed to create user account.");
+            }
+
+            return new UserCreatedResponse
+            {
+                Id = Convert.ToInt32(result),
+                Email = emailAddress,
+                Username = username
+            };
+        }
+
+        public Task<User> CreateNewUserAccountAsync(string userCredentials)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<bool> DeleteUserAsync(int userId)
@@ -76,29 +94,45 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email, string password)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(Common.StoredProcedures.GetOrCreateUser, connection);
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.AddWithValue("@Email", email);
-            command.Parameters.AddWithValue("@Password", password);
-
-            await connection.OpenAsync();
-            using (var reader = await command.ExecuteReaderAsync())
+            try
             {
-                if (await reader.ReadAsync())
+                using var connection = new SqlConnection(_connectionString);
+                using var command = new SqlCommand(Common.StoredProcedures.GET_USERS_BY_EMAIL, connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Email", email);
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
                 {
-                    return new User
+                    if (await reader.ReadAsync())
                     {
-                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                        EmailAddress = reader.GetString(reader.GetOrdinal("Email")),
-                        Name = reader.GetString(reader.GetOrdinal("Name")),
-                        // Map other properties as needed
-                    };
+                        return new User
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Email = reader.GetString(reader.GetOrdinal("Email")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            // Map other properties as needed
+                        };
+                    }
                 }
+                return null;
             }
-            return null;
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while retrieving user by email: {Email}", email);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving user by email: {Email}", email);
+                throw;
+            }
+        }
+
+        public Task<User?> GetUserByEmailAsync(string email, string password)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<User?> GetUserByIdAsync(int userId)
@@ -111,9 +145,40 @@ namespace SOCApi.Services
             throw new NotImplementedException();
         }
 
-        public Task<bool> IsUsernameUnique(string username)
+        public async Task<bool> IsUsernameUnique(string username)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(username))
+            {
+                _logger.LogError("Username is null or empty.");
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
+            }
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                using var command = new SqlCommand(Common.StoredProcedures.VALIDATE_USERNAME_UNIQUE, connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@Username", username);
+                await connection.OpenAsync();
+                var result = await command.ExecuteScalarAsync();
+                int userCount = 0;
+
+                if (result != null && int.TryParse(result.ToString(), out int count))
+                {
+                    userCount = count;
+                }
+                return userCount == 0;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex, "Database error occurred while checking username uniqueness: {Username}", username);
+                throw new InvalidOperationException("An error occurred while checking username uniqueness.", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while checking username uniqueness: {Username}", username);
+                throw new InvalidOperationException("An error occurred while checking username uniqueness.", ex);
+            }
         }
 
         public Task<bool> UpdateUserAsync(User user)
