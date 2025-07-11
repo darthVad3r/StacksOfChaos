@@ -29,7 +29,7 @@ namespace SOCApi.Services
         public async Task<User> CreateNewUserAccountAsync(string userCredentials)
         {
             // Implementation for creating a new user account
-            var newUser = JsonSerializer.Deserialize<User>(userCredentials);
+            var newUser = JsonSerializer.Deserialize<UserCredentials>(userCredentials);
             if (newUser == null)
             {
                 _logger.LogError("Failed to deserialize user credentials.");
@@ -38,7 +38,7 @@ namespace SOCApi.Services
 
             var username = newUser.Username;
             var password = newUser.Password;
-            var emailAddress = newUser.EmailAddress;
+            var emailAddress = newUser.Emaild;
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(emailAddress))
             {
@@ -60,8 +60,7 @@ namespace SOCApi.Services
             }
 
             newUser.Username = username;
-            newUser.EmailAddress = emailAddress;
-            newUser.CreatedAt = DateTime.UtcNow;
+            newUser.Email = emailAddress;
             newUser.Password = _passwordService.HashPassword(password);
 
             return await Task.FromResult(newUser);
