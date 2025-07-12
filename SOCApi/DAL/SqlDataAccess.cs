@@ -39,7 +39,6 @@ public class SqlDataAccess
                 return new User
                 {
                     Id = reader.GetInt32(0),
-                    Username = reader.GetString(1),
                     Role = reader.GetString(2)
                 };
             }

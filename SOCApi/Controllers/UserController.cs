@@ -37,7 +37,5 @@ namespace SOCApi.Controllers
             // Simulate user creation success
             return Ok(new { message = "User created successfully." });
         }
-
-        private 
     }
 }

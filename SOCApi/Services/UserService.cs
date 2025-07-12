@@ -13,6 +13,11 @@ namespace SOCApi.Services
         private readonly IPasswordService _passwordService;
         private readonly string _connectionString;
 
+        public UserService(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
         public UserService(ILogger<UserService> logger,
             IEmailService emailService,
             IPasswordService passwordService,

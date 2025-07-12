@@ -67,7 +67,6 @@
     <Build Include="dbo\Tables\Title.sql" />
     <Build Include="dbo\Tables\Users.sql" />
     <Build Include="dbo\Tables\RefreshTokens.sql" />
-    <Build Include="dbo\Stored Procedures\dbo.usp_GetOrCreateUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PublishLocations\SOCData.publish.xml" />

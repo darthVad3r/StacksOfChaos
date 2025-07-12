@@ -1,6 +1,6 @@
 using Microsoft.OpenApi.Models;
+using SOCApi.Interfaces;
 using SOCApi.Services;
-using SOCApi.Repositories;
 
 namespace SOCApi;
 
@@ -24,7 +24,6 @@ public static class Program
         // API Services
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-        services.AddSingleton<TokenService>();
 
         // Application Services
         ConfigureApplicationServices(services, configuration);
@@ -41,7 +40,6 @@ public static class Program
 
     private static void ConfigureApplicationServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<BookSearchService>();
         // Add other application services here
 
         services.Configure<CookiePolicyOptions>(options =>
@@ -69,6 +67,25 @@ public static class Program
                 return Task.CompletedTask;
             };
         });
+
+        services.AddAuthorization();
+        services.AddScoped<IUserService>(provider =>
+        {
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "your-fallback-connection-string";
+            services.AddScoped<IUserService>(provider =>
+            {
+                var configuration = provider.GetRequiredService<IConfiguration>();
+                var logger = provider.GetRequiredService<ILogger<UserService>>();
+                var emailService = provider.GetRequiredService<IEmailService>();
+                var passwordService = provider.GetRequiredService<IPasswordService>();
+                var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "your-fallback-connection-string";
+                return new UserService(logger, emailService, passwordService, connectionString);
+            });
+            return new UserService(connectionString);
+        }); services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IPasswordService, PasswordService>();
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
