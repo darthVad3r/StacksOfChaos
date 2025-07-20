@@ -1,10 +1,11 @@
 ﻿using SOCApi.Models;
+using SOCApi.Dto;
 
 namespace SOCApi.Interfaces
 {
     public interface IUserService
     {
-        public Task<User> CreateNewUserAccountAsync(string userCredentials);
+        public Task<UserCreatedResponse> RegisterNewUserAccountAsync(string newUserCredentials);
         public Task<bool> DeleteUserAsync(int userId);
         public Task<IEnumerable<User>> GetAllUsersAsync();
         public Task<User?> GetUserByIdAsync(int userId);

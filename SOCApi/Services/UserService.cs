@@ -3,6 +3,8 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using SOCApi.Interfaces;
 using SOCApi.Exceptions;
+using System.Text.Json;
+using SOCApi.Dto;
 
 namespace SOCApi.Services
 {
@@ -29,7 +31,7 @@ namespace SOCApi.Services
             _connectionString = connectionString;
         }
 
-        public async Task<UserCreatedResponse> CreateNewUserAccountAsync(UserCredentials newUserCredentials)
+        public async Task<UserCreatedResponse> RegisterNewUserAccountAsync(string newUserCredentials)
         {
             if (newUserCredentials == null)
             {
@@ -37,9 +39,11 @@ namespace SOCApi.Services
                 throw new ArgumentException("Invalid user credentials provided.");
             }
 
-            var username = newUserCredentials.Username;
-            var password = newUserCredentials.Password;
-            var emailAddress = newUserCredentials.Email;
+            var userCredentials = JsonSerializer.Deserialize<UserCredentials>(newUserCredentials);
+
+            var username = userCredentials?.Username;
+            var password = userCredentials?.Password;
+            var emailAddress = userCredentials?.Email;
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(emailAddress))
             {
@@ -82,11 +86,6 @@ namespace SOCApi.Services
                 Email = emailAddress,
                 Username = username
             };
-        }
-
-        public Task<User> CreateNewUserAccountAsync(string userCredentials)
-        {
-            throw new NotImplementedException();
         }
 
         public Task<bool> DeleteUserAsync(int userId)

@@ -1,4 +1,4 @@
-namespace SOCApi.Models
+namespace SOCApi.Dto
 {
     public class UserCreatedResponse
     {

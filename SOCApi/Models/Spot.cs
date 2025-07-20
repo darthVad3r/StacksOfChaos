@@ -4,6 +4,6 @@
     {
         public int Id { get; set; }
         public string? SpotName { get; set; }
-        public List<Title>? Titles { get; set; }
+        public List<Book>? Books { get; set; }
     }
 }

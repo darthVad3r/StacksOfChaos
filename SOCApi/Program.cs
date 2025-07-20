@@ -1,6 +1,22 @@
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Models;
 using SOCApi.Interfaces;
 using SOCApi.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SOCApi.Data;
+using SOCApi.Controllers;
+
+app.MapUserEndpoints();
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+};
 
 namespace SOCApi;
 
@@ -9,6 +25,8 @@ public static class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddDbContext<SOCApiContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("SOCApiContext") ?? throw new InvalidOperationException("Connection string 'SOCApiContext' not found.")));
 
         ConfigureServices(builder.Services, builder.Configuration);
 
@@ -55,7 +73,6 @@ public static class Program
         })
         .AddCookie("Cookies", options =>
         {
-            // For APIs, suppress redirect to /Account/Login and return 401 instead
             options.Events.OnRedirectToLogin = context =>
             {
                 context.Response.StatusCode = 401;
@@ -69,23 +86,21 @@ public static class Program
         });
 
         services.AddAuthorization();
+
+        // Register UserService with all required dependencies using a factory
         services.AddScoped<IUserService>(provider =>
         {
-            var configuration = provider.GetRequiredService<IConfiguration>();
+            var logger = provider.GetRequiredService<ILogger<UserService>>();
+            var emailService = provider.GetRequiredService<IEmailService>();
+            var passwordService = provider.GetRequiredService<IPasswordService>();
             var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "your-fallback-connection-string";
-            services.AddScoped<IUserService>(provider =>
-            {
-                var configuration = provider.GetRequiredService<IConfiguration>();
-                var logger = provider.GetRequiredService<ILogger<UserService>>();
-                var emailService = provider.GetRequiredService<IEmailService>();
-                var passwordService = provider.GetRequiredService<IPasswordService>();
-                var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "your-fallback-connection-string";
-                return new UserService(logger, emailService, passwordService, connectionString);
-            });
-            return new UserService(connectionString);
-        }); services.AddScoped<IAuthorizationService, AuthorizationService>();
-        services.AddScoped<IEmailService, EmailService>();
+            return new UserService(logger, emailService, passwordService, connectionString);
+        });
+
         services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<IPermissionService, PermissionService>();
     }
 
     private static void ConfigureHttpClient(IServiceCollection services)
