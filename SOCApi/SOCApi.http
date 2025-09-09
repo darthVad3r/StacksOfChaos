@@ -1,7 +1,6 @@
-@SOCApi_HostAddress = https://localhost:5001
+@SOCApi_HostAddress = http://localhost:5174
 
-### Get Title Search
-GET {{SOCApi_HostAddress}}/api/GetTitleInformation
+GET {{SOCApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
