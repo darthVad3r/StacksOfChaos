@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install .NET MAUI Android workload
+      run: dotnet workload install maui-android
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
