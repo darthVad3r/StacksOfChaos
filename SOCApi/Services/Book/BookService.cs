@@ -31,14 +31,57 @@ namespace SOCApi.Services.Book
 
         public async Task<Models.Book?> CreateBookAsync(Models.Book book)
         {
+            // Validate the book before adding to database
+            if (!await _bookValidationService.ValidateBookAsync(book))
+            {
+                return null;
+            }
+
+            // Validate ISBN if provided
+            if (!string.IsNullOrWhiteSpace(book.ISBN))
+            {
+                if (!await _bookValidationService.ValidateISBNAsync(book.ISBN))
+                {
+                    return null;
+                }
+            }
+
+            // Validate year published if provided
+            if (book.YearPublished.HasValue)
+            {
+                if (!await _bookValidationService.IsValidYearPublished(book.YearPublished?.Year))
+                {
+                    return null;
+                }
+            }
+
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
             return book;
         }
 
-        public async Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate)
+        public async Task<Models.Book?> CreateBookAsync(string title, string author, string userId, string isbn, DateTime publishedDate)
         {
-            var book = new Models.Book(title, author, string.Empty, isbn, null, publishedDate);
+            // Validate ISBN
+            if (!await _bookValidationService.ValidateISBNAsync(isbn))
+            {
+                return null;
+            }
+
+            // Validate year published
+            if (!await _bookValidationService.IsValidYearPublished(publishedDate.Year))
+            {
+                return null;
+            }
+
+            var book = new Models.Book(title, author, userId, isbn, null, publishedDate);
+            
+            // Validate the complete book object
+            if (!await _bookValidationService.ValidateBookAsync(book))
+            {
+                return null;
+            }
+
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
             return book;
@@ -105,16 +148,6 @@ namespace SOCApi.Services.Book
         private async Task<bool> BookExistsAsync(int id)
         {
             return await _context.Books.AnyAsync(e => e.Id == id);
-        }
-
-        public bool IsValidISBN(string isbn)
-        {
-            if (string.IsNullOrEmpty(isbn))
-                return false;
-
-            // Basic ISBN validation
-            var cleanISBN = isbn.Replace("-", "").Replace(" ", "");
-            return cleanISBN.Length == 10 || cleanISBN.Length == 13;
         }
     }
 }
