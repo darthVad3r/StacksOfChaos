@@ -44,7 +44,7 @@ namespace SOCApi.Services.Book
             }
 
             // Validate year published if provided
-            if (book.YearPublished.HasValue && !await _bookValidationService.IsValidYearPublished(book.YearPublished?.Year))
+            if (book.YearPublished.HasValue && !await _bookValidationService.IsValidYearPublished(book.YearPublished.Value.Year))
             {
                 return null;
             }
