@@ -106,15 +106,5 @@ namespace SOCApi.Services.Book
         {
             return await _context.Books.AnyAsync(e => e.Id == id);
         }
-
-        public bool IsValidISBN(string isbn)
-        {
-            if (string.IsNullOrEmpty(isbn))
-                return false;
-
-            // Basic ISBN validation
-            var cleanISBN = isbn.Replace("-", "").Replace(" ", "");
-            return cleanISBN.Length == 10 || cleanISBN.Length == 13;
-        }
     }
 }
