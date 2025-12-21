@@ -26,7 +26,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "https://localhost:4200",  // Angular dev
-            "https://localhost:5001"   // Add production URLs
+            "https://localhost:5001"   // TODO Add production URLs
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
