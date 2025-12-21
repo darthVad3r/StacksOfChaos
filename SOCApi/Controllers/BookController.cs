@@ -43,6 +43,11 @@ namespace SOCApi.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var createdBook = await _bookService.CreateBookAsync(book);
+            if (createdBook == null) 
+            {
+                return StatusCode(500, "Failed to create book");
+            }
+            
             return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
         }
 

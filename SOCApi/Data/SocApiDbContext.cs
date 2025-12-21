@@ -59,7 +59,7 @@ namespace SOCApi.Data
                 entity.Property(e => e.Author).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Genre).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.YearPublished).IsRequired();
-                entity.Property(e => e.Isbn).IsRequired();
+                entity.Property(e => e.ISBN).IsRequired();
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.CoverImageUrl).HasMaxLength(500);
                 // CreatedAt will use the default value set in the model class
