@@ -31,28 +31,22 @@ namespace SOCApi.Services.Book
 
         public async Task<Models.Book?> CreateBookAsync(Models.Book book)
         {
-            // Validate the book before adding to database
+            // Validate the book (includes validation of all properties)
             if (!await _bookValidationService.ValidateBookAsync(book))
             {
                 return null;
             }
 
             // Validate ISBN if provided
-            if (!string.IsNullOrWhiteSpace(book.ISBN))
+            if (!string.IsNullOrWhiteSpace(book.ISBN) && !await _bookValidationService.ValidateISBNAsync(book.ISBN))
             {
-                if (!await _bookValidationService.ValidateISBNAsync(book.ISBN))
-                {
-                    return null;
-                }
+                return null;
             }
 
             // Validate year published if provided
-            if (book.YearPublished.HasValue)
+            if (book.YearPublished.HasValue && !await _bookValidationService.IsValidYearPublished(book.YearPublished?.Year))
             {
-                if (!await _bookValidationService.IsValidYearPublished(book.YearPublished?.Year))
-                {
-                    return null;
-                }
+                return null;
             }
 
             _context.Books.Add(book);
@@ -62,29 +56,10 @@ namespace SOCApi.Services.Book
 
         public async Task<Models.Book?> CreateBookAsync(string title, string author, string userId, string isbn, DateTime publishedDate)
         {
-            // Validate ISBN
-            if (!await _bookValidationService.ValidateISBNAsync(isbn))
-            {
-                return null;
-            }
-
-            // Validate year published
-            if (!await _bookValidationService.IsValidYearPublished(publishedDate.Year))
-            {
-                return null;
-            }
-
             var book = new Models.Book(title, author, userId, isbn, null, publishedDate);
             
-            // Validate the complete book object
-            if (!await _bookValidationService.ValidateBookAsync(book))
-            {
-                return null;
-            }
-
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-            return book;
+            // Use the main CreateBookAsync method for consistent validation
+            return await CreateBookAsync(book);
         }
 
         public async Task<Models.Book?> UpdateBookAsync(int id, Models.Book book)
