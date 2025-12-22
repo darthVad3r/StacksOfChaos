@@ -8,6 +8,7 @@ using SOCApi.Services;
 using SOCApi.Services.Password;
 using SOCApi.Services.User;
 using SOCApi.Services.Validation;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,8 +40,8 @@ builder.Services.AddDbContext<SocApiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Health Checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<SocApiDbContext>();
+builder.Services.AddHealthChecks();
+    // TODO: Add Entity Framework health check when needed
 
 // Identity Configuration
 builder.Services.AddIdentity<User, Role>(options =>
@@ -71,6 +72,9 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddApiEndpoints();
 
 // Application Services (alphabetically organized)
+builder.Services.AddScoped<SOCApi.Services.Book.IBookService, SOCApi.Services.Book.BookService>();
+builder.Services.AddScoped<SOCApi.Services.BookValidation.IBookValidationService, SOCApi.Services.BookValidation.BookValidationService>();
+builder.Services.AddScoped<SOCApi.Services.Common.IDateTimeProvider, SOCApi.Services.Common.DateTimeProvider>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
