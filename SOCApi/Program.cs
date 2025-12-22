@@ -1,143 +1,118 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
+using SOCApi.Configuration;
+using SOCApi.Data;
+using SOCApi.Models;
 using SOCApi.Services;
-using SOCApi.Repositories;
+using SOCApi.Services.Password;
+using SOCApi.Services.User;
+using SOCApi.Services.Validation;
 
-namespace SOCApi;
+var builder = WebApplication.CreateBuilder(args);
 
-public static class Program
+// Authentication & Authorization
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
+// Controllers & OpenAPI
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+
+// CORS Configuration
+builder.Services.AddCors(options =>
 {
-    public static void Main(string[] args)
+    options.AddPolicy("AllowWebApp", policy =>
     {
-        var builder = WebApplication.CreateBuilder(args);
+        policy.WithOrigins(
+            "https://localhost:4200",  // Angular dev
+            "https://localhost:5001"   // TODO Add production URLs
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
 
-        ConfigureServices(builder.Services, builder.Configuration);
+// Database Context
+builder.Services.AddDbContext<SocApiDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        var app = builder.Build();
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SocApiDbContext>();
 
-        ConfigureMiddleware(app);
+// Identity Configuration
+builder.Services.AddIdentity<User, Role>(options =>
+{
+    // Password requirements (OWASP guidelines)
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequiredUniqueChars = 1;
+    
+    // User requirements
+    options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+    
+    // Email confirmation
+    options.SignIn.RequireConfirmedEmail = !builder.Environment.IsDevelopment();
+    options.SignIn.RequireConfirmedAccount = !builder.Environment.IsDevelopment();
+})
+.AddEntityFrameworkStores<SocApiDbContext>()
+.AddDefaultTokenProviders()
+.AddApiEndpoints();
 
-        app.Run();
+// Application Services (alphabetically organized)
+builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
+builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
+builder.Services.AddScoped<IUserRetrievalService, UserRetrievalService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Configuration
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
+
+var app = builder.Build();
+
+// Database initialization
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<SocApiDbContext>();
+        await context.Database.MigrateAsync();
     }
-
-    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    catch (Exception ex)
     {
-        // API Services
-        services.AddControllers();
-        services.AddEndpointsApiExplorer();
-        services.AddSingleton<TokenService>();
-
-        // Application Services
-        ConfigureApplicationServices(services, configuration);
-
-        // HTTP Client
-        ConfigureHttpClient(services);
-
-        // CORS
-        ConfigureCors(services, configuration);
-
-        // Swagger
-        ConfigureSwagger(services);
-    }
-
-    private static void ConfigureApplicationServices(IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddScoped<BookSearchService>();
-        // Add other application services here
-        services.AddScoped<IUserRepository, UserRepository>(provider =>
-        {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(connectionString))
-                throw new InvalidOperationException("DefaultConnection connection string is not configured.");
-            return new UserRepository(connectionString);
-        });
-
-        services.Configure<CookiePolicyOptions>(options =>
-        {
-            options.MinimumSameSitePolicy = SameSiteMode.None;
-            options.Secure = CookieSecurePolicy.Always;
-        });
-
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = "Cookies";
-            options.DefaultSignInScheme = "Cookies";
-        })
-        .AddCookie("Cookies", options =>
-        {
-            // For APIs, suppress redirect to /Account/Login and return 401 instead
-            options.Events.OnRedirectToLogin = context =>
-            {
-                context.Response.StatusCode = 401;
-                return Task.CompletedTask;
-            };
-            options.Events.OnRedirectToAccessDenied = context =>
-            {
-                context.Response.StatusCode = 403;
-                return Task.CompletedTask;
-            };
-        });
-    }
-
-    private static void ConfigureHttpClient(IServiceCollection services)
-    {
-        services.AddHttpClient("BookClient", client =>
-        {
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
-    }
-
-    private static void ConfigureCors(IServiceCollection services, IConfiguration configuration)
-    {
-        var corsOrigin = configuration.GetValue<string>("CorsSettings:AllowedOrigin")
-            ?? Common.GetAllowedOrigin();
-
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowSpecificOrigin",
-                builder => builder
-                    .WithOrigins(corsOrigin)
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials());
-        });
-    }
-
-    private static void ConfigureSwagger(IServiceCollection services)
-    {
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "SOC API",
-                Version = "v1",
-                Description = "API for Stacks of Chaos",
-                Contact = new OpenApiContact
-                {
-                    Name = "API Support",
-                    Email = "rmfinley@yahoo.com"
-                }
-            });
-        });
-    }
-
-    private static void ConfigureMiddleware(WebApplication app)
-    {
-        if (app.Environment.IsDevelopment())
-        {
-            ConfigureDevelopmentMiddleware(app);
-        }
-
-        app.UseHttpsRedirection();
-        app.UseCors("AllowSpecificOrigin");
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.MapControllers();
-    }
-
-    private static void ConfigureDevelopmentMiddleware(IApplicationBuilder app)
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+        logger?.LogError(ex, "An error occurred while migrating the database.");
     }
 }
+
+// HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.UseHttpsRedirection();
+app.UseCors("AllowWebApp");
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapIdentityApi<User>();
+app.MapControllers();
+app.MapHealthChecks("/health");
+
+await app.RunAsync();
