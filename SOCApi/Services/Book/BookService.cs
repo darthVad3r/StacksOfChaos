@@ -24,21 +24,20 @@ namespace SOCApi.Services.Book
             return await _context.Books.ToListAsync();
         }
 
-        public async Task<Models.Book?> GetBookByIdAsync(int id)
+        public async Task<Models.Book?> GetBookByIdAsync(int bookId)
         {
-            return await _context.Books.FindAsync(id);
+            return await _context.Books.FindAsync(bookId);
         }
 
         public async Task<Models.Book?> CreateBookAsync(Models.Book book)
         {
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-            return book;
-        }
+            if (!await _bookValidationService.ValidateBookAsync(book))
+            {
+                // Invalid book data
+                // Log the validation failure as needed
+                return null;
+            }
 
-        public async Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate)
-        {
-            var book = new Models.Book(title, author, string.Empty, isbn, null, publishedDate);
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
             return book;
@@ -82,9 +81,9 @@ namespace SOCApi.Services.Book
             }
         }
 
-        public async Task<bool> DeleteBookAsync(int id)
+        public async Task<bool> DeleteBookAsync(int bookId)
         {
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books.FindAsync(bookId);
             if (book == null) return false;
 
             _context.Books.Remove(book);
@@ -107,7 +106,7 @@ namespace SOCApi.Services.Book
             return await _context.Books.AnyAsync(e => e.Id == id);
         }
 
-        public bool IsValidISBN(string isbn)
+        public static bool IsValidISBN(string isbn)
         {
             if (string.IsNullOrEmpty(isbn))
                 return false;
