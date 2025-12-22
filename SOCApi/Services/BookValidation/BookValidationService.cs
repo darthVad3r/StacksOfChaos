@@ -26,11 +26,26 @@ namespace SOCApi.Services.BookValidation
             // Basic ISBN validation - remove hyphens and spaces
             var cleanISBN = isbn.Replace("-", "").Replace(" ", "");
             
-            // Check if it's 10 or 13 digits
+            // Check if it's 10 or 13 characters
             var isValid = cleanISBN.Length == 10 || cleanISBN.Length == 13;
-            
-            // Additional validation: ensure all characters are digits
-            isValid = isValid && cleanISBN.All(char.IsDigit);
+
+            if (isValid)
+            {
+                if (cleanISBN.Length == 13)
+                {
+                    // ISBN-13 must be all digits
+                    isValid = cleanISBN.All(char.IsDigit);
+                }
+                else // cleanISBN.Length == 10
+                {
+                    // ISBN-10: first 9 characters must be digits,
+                    // last character can be a digit or 'X' (check digit)
+                    var firstNineAreDigits = cleanISBN.Take(9).All(char.IsDigit);
+                    var lastChar = cleanISBN[9];
+                    var lastIsValid = char.IsDigit(lastChar) || lastChar == 'X' || lastChar == 'x';
+                    isValid = firstNineAreDigits && lastIsValid;
+                }
+            }
             
             return Task.FromResult(isValid);
         }
