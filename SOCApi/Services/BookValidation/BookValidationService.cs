@@ -42,7 +42,7 @@ namespace SOCApi.Services.BookValidation
                     // last character can be a digit or 'X' (check digit)
                     var firstNineAreDigits = cleanISBN.Take(9).All(char.IsDigit);
                     var lastChar = cleanISBN[9];
-                    var lastIsValid = char.IsDigit(lastChar) || lastChar == 'X' || lastChar == 'x';
+                    var lastIsValid = char.IsDigit(lastChar) || lastChar == 'X';
                     isValid = firstNineAreDigits && lastIsValid;
                 }
             }
@@ -50,13 +50,14 @@ namespace SOCApi.Services.BookValidation
             return Task.FromResult(isValid);
         }
 
-        public Task<bool> IsValidYearPublished(int? year)
+        public Task<bool> IsValidYearPublished(DateTime? year)
         {
             if (!year.HasValue) return Task.FromResult(true); // Year is optional
-            
+
             var currentYear = DateTime.UtcNow.Year;
-            var isValid = year.Value >= 1000 && year.Value <= currentYear + 1; // Allow next year for pre-releases
-            
+            var yearValue = year.Value.Year;
+            var isValid = yearValue >= 1000 && yearValue <= currentYear;
+
             return Task.FromResult(isValid);
         }
     }

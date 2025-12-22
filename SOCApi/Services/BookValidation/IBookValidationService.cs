@@ -4,6 +4,6 @@ namespace SOCApi.Services.BookValidation
     {
         Task<bool> ValidateBookAsync(Models.Book book);
         Task<bool> ValidateISBNAsync(string isbn);
-        Task<bool> IsValidYearPublished(int? year);
+        Task<bool> IsValidYearPublished(DateTime? year);
     }
 }
