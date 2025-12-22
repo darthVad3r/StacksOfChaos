@@ -115,5 +115,10 @@ namespace SOCApi.Services.Book
             var cleanISBN = isbn.Replace("-", "").Replace(" ", "");
             return cleanISBN.Length == 10 || cleanISBN.Length == 13;
         }
+
+        public Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
