@@ -43,28 +43,14 @@ namespace SOCApi.Services.Book
             return book;
         }
 
-        public async Task<Models.Book?> UpdateBookAsync(int id, Models.Book book)
-        {
-            if (id != book.Id) return null;
-
-            _context.Entry(book).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-                return book;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await BookExistsAsync(book.Id))
-                {
-                    return null;
-                }
-                throw;
-            }
-        }
-
         public async Task<Models.Book?> UpdateBookAsync(Models.Book book)
         {
+            if(!await _bookValidationService.ValidateBookAsync(book))
+            {
+                // Invalid book data
+                // Log the validation failure as needed
+                return null;
+            }
             _context.Entry(book).State = EntityState.Modified;
             try
             {
@@ -117,6 +103,11 @@ namespace SOCApi.Services.Book
         }
 
         public Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Models.Book?> UpdateBookAsync(int id, Models.Book book)
         {
             throw new NotImplementedException();
         }
