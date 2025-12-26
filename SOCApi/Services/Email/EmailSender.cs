@@ -1,35 +1,66 @@
+using MailKit.Net.Smtp;
+using Microsoft.Extensions.Options;
+using MimeKit;
+using SOCApi.Configuration;
+
 namespace SOCApi.Services.Email
 {
     public class EmailSender : IEmailSender
     {
         private readonly ILogger<EmailSender> _logger;
+        private readonly EmailSettings _emailSettings;
 
-        public EmailSender(ILogger<EmailSender> logger)
+        public EmailSender(ILogger<EmailSender> logger, IOptions<EmailSettings> emailSettings)
         {
             _logger = logger;
+            _emailSettings = emailSettings.Value;
         }
 
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             try
             {
-                IsValidEmail(email);
+                if (!IsValidEmail(email))
+                {
+                    throw new ArgumentException("Invalid email address.", nameof(email));
+                }
 
-                // TODO: Implement actual email sending logic
-                // For now, just log the email that would be sent
-                _logger.LogInformation("Email would be sent to {Email} with subject: {Subject}", email, subject);
-                _logger.LogDebug("Email content: {Content}", htmlMessage);
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
+                message.To.Add(MailboxAddress.Parse(email));
+                message.Subject = subject;
 
-                return Task.CompletedTask;
+                var bodyBuilder = new BodyBuilder
+                {
+                    HtmlBody = htmlMessage
+                };
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using var client = new SmtpClient();
+                
+                // Connect to SMTP server
+                await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, _emailSettings.UseSsl);
+
+                // Authenticate if credentials are provided
+                if (!string.IsNullOrEmpty(_emailSettings.Username) && !string.IsNullOrEmpty(_emailSettings.Password))
+                {
+                    await client.AuthenticateAsync(_emailSettings.Username, _emailSettings.Password);
+                }
+
+                // Send the email
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
+                _logger.LogInformation("Email sent successfully to {Email} with subject: {Subject}", email, subject);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in SendEmailAsync parameters validation.");
+                _logger.LogError(ex, "Error sending email to {Email} with subject: {Subject}", email, subject);
                 throw;
             }
         }
 
-        private static void IsValidEmail(string email)
+        private static bool IsValidEmail(string email)
         {
             try
             {

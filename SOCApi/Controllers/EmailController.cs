@@ -19,6 +19,9 @@ namespace SOCApi.Controllers
             _emailService = emailService;
         }
         // Add action methods here
+        
+        // TODO: Implement SendEmail endpoint with proper EmailRequest DTO
+        /*
         [Authorize]
         [HttpPost("send")]
         public async Task<IActionResult> SendEmail([FromBody] EmailRequest emailRequest)
@@ -32,5 +35,6 @@ namespace SOCApi.Controllers
             
             return Ok("Email sent successfully");
         }
+        */
     }
 }
