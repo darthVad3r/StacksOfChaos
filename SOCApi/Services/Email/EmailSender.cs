@@ -20,6 +20,11 @@ namespace SOCApi.Services.Email
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    throw new ArgumentException("Email address cannot be null or empty.", nameof(email));
+                }
+
                 if (!IsValidEmail(email))
                 {
                     throw new ArgumentException("Invalid email address.", nameof(email));
@@ -62,6 +67,11 @@ namespace SOCApi.Services.Email
 
         private static bool IsValidEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return false;
+            }
+
             try
             {
                 var addr = new System.Net.Mail.MailAddress(email);

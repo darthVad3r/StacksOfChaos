@@ -46,6 +46,25 @@ public class EmailSenderTests
             .WithMessage("Invalid email address.*");
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task SendEmailAsync_WithNullOrEmptyEmail_ThrowsArgumentException(string email)
+    {
+        // Arrange
+        var emailSender = new EmailSender(_loggerMock.Object, _emailSettingsOptions);
+        var subject = "Test Subject";
+        var message = "Test Message";
+
+        // Act
+        Func<Task> act = async () => await emailSender.SendEmailAsync(email, subject, message);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("Email address cannot be null or empty.*");
+    }
+
     [Fact]
     public async Task SendEmailAsync_WithValidEmailButNoSmtpServer_ThrowsException()
     {
