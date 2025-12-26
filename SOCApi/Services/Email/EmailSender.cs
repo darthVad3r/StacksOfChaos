@@ -11,12 +11,35 @@ namespace SOCApi.Services.Email
 
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            // TODO: Implement actual email sending logic
-            // For now, just log the email that would be sent
-            _logger.LogInformation("Email would be sent to {Email} with subject: {Subject}", email, subject);
-            _logger.LogDebug("Email content: {Content}", htmlMessage);
-            
-            return Task.CompletedTask;
+            try
+            {
+                IsValidEmail(email);
+
+                // TODO: Implement actual email sending logic
+                // For now, just log the email that would be sent
+                _logger.LogInformation("Email would be sent to {Email} with subject: {Subject}", email, subject);
+                _logger.LogDebug("Email content: {Content}", htmlMessage);
+
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SendEmailAsync parameters validation.");
+                throw;
+            }
+        }
+
+        private static void IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

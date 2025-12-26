@@ -30,6 +30,7 @@ namespace SOCApi.Controllers
                 // Validate model state
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogWarning("Invalid registration request received");
                     return BadRequest(ModelState);
                 }
 

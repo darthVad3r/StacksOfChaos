@@ -45,7 +45,11 @@ namespace SOCApi.Controllers
             var createdBook = await _bookService.CreateBookAsync(book);
             if (createdBook == null) 
             {
-                return StatusCode(500, "Failed to create book");
+                return StatusCode(500, new
+                {
+                    error = "Book creation failed",
+                    details = "The book could not be created because the book service returned to result.  Please verify the request data and try again."
+                });
             }
             
             return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);

@@ -52,7 +52,7 @@ namespace SOCApi.Services.User
 
         private async Task<SOCApi.Models.User> CreateNewUserAsync(string userName, string password, string? firstName = null, string? lastName = null)
         {
-            var user = new SOCApi.Models.User 
+            var user = new Models.User 
             { 
                 UserName = userName,
                 Email = userName, // Best practice: use email as username
@@ -88,27 +88,30 @@ namespace SOCApi.Services.User
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error while checking username availability for {UserName}", userName);
                 throw new InvalidOperationException("Error checking username availability", ex);
             }
         }
 
-        public async Task<SOCApi.Models.User> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        public async Task<Models.User> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
         {
             var success = await _passwordManagementService.ChangePasswordAsync(userId, currentPassword, newPassword);
             if (!success)
             {
+                _logger.LogError("Password change failed for user ID {UserId}", userId);
                 throw new InvalidOperationException("Password change failed");
             }
 
             var user = await GetUserByIdAsync(userId);
             if (user == null)
             {
+                _logger.LogError("User not found after password change for user ID {UserId}", userId);
                 throw new InvalidOperationException("User not found after password change");
             }
             return user;
         }
 
-        public async Task<SOCApi.Models.User?> GetUserByNameAsync(string userName)
+        public async Task<Models.User?> GetUserByNameAsync(string userName)
         {
             return await _userRetrievalService.GetUserByNameAsync(userName);
         }
@@ -118,17 +121,22 @@ namespace SOCApi.Services.User
             return await _userRetrievalService.GetUserByIdAsync(userId);
         }
 
-        public async Task<IEnumerable<SOCApi.Models.User>> GetAllUsersAsync()
+        public async Task<IEnumerable<Models.User>> GetAllUsersAsync()
         {
             return await _userRetrievalService.GetAllUsersAsync();
         }
 
-        public async Task<IdentityResult> CreateUserAsync(SOCApi.Models.User user, string password)
+        public async Task<IdentityResult> CreateUserAsync(Models.User user, string password)
         {
+            if (string.IsNullOrEmpty(user.UserName))
+            {
+                _logger.LogError("Attempted to create user with null or empty username");
+                throw new ArgumentException("Username cannot be null or empty");
+            }
             return await _userManager.CreateAsync(user, password);
         }
 
-        public async Task<SOCApi.Models.User> UpdateUserAsync(SOCApi.Models.User user)
+        public async Task<SOCApi.Models.User> UpdateUserAsync(Models.User user)
         {
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
