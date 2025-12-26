@@ -1,48 +1,51 @@
 using Microsoft.AspNetCore.Identity;
-using SOCApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using SOCApi.Services.User;
 using SOCApi.Configuration;
-using SOCApi.Services;
-using SOCApi.Services.Validation;
-using SOCApi.Services.Password;
+using SOCApi.Data;
 using SOCApi.Models;
+using SOCApi.Services;
 using SOCApi.Services.Password;
+using SOCApi.Services.User;
+using SOCApi.Services.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Add authentication for Identity API endpoints - Identity will handle bearer token setup
+// Authentication & Authorization
 builder.Services.AddAuthentication();
-
-// Password Services
-builder.Services.AddScoped<IPasswordService, SOCApi.Services.Password.PasswordService>();
-builder.Services.AddScoped<IPasswordValidationService, SOCApi.Services.Validation.PasswordValidationService>();
-builder.Services.AddScoped<IPasswordHashingService, SOCApi.Services.Password.PasswordHashingService>();
-//builder.Services.AddScoped<IPasswordPolicyService, SOCApi.Services.PasswordPolicy.PasswordPolicyService>();
-
 builder.Services.AddAuthorization();
 
+// Controllers & OpenAPI
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Register DbContext BEFORE Identity services
-builder.Services.AddDbContext<SocApiDbContext>(options =>
+// CORS Configuration
+builder.Services.AddCors(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    // options.UseInMemoryDatabase("SocApiDb");
-    // // Explicitly configure for InMemory to avoid migration issues
-    // options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
-    // // Disable migrations for InMemory database
-    // options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
+    options.AddPolicy("AllowWebApp", policy =>
+    {
+        policy.WithOrigins(
+            "https://localhost:4200",  // Angular dev
+            "https://localhost:5001"   // TODO Add production URLs
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
 });
 
-// Configure Identity with proper options - use SOCApi.Models.User instead of IdentityUser
+// Database Context
+builder.Services.AddDbContext<SocApiDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SocApiDbContext>();
+
+// Identity Configuration
 builder.Services.AddIdentity<User, Role>(options =>
 {
-    // Password requirements (following OWASP guidelines)
+    // Password requirements (OWASP guidelines)
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 8;
     options.Password.RequireNonAlphanumeric = true;
@@ -59,59 +62,57 @@ builder.Services.AddIdentity<User, Role>(options =>
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.AllowedForNewUsers = true;
     
-    // Email confirmation (set to true in production)
-    options.SignIn.RequireConfirmedEmail = false; // Set to true in production
-    options.SignIn.RequireConfirmedAccount = false; // Set to true in production
+    // Email confirmation
+    options.SignIn.RequireConfirmedEmail = !builder.Environment.IsDevelopment();
+    options.SignIn.RequireConfirmedAccount = !builder.Environment.IsDevelopment();
 })
-    .AddEntityFrameworkStores<SocApiDbContext>()
-    .AddDefaultTokenProviders()
-    .AddApiEndpoints();
+.AddEntityFrameworkStores<SocApiDbContext>()
+.AddDefaultTokenProviders()
+.AddApiEndpoints();
 
-// Register services AFTER Identity is configured
-builder.Services.AddScoped<IUserService, UserService>();
+// Application Services (alphabetically organized)
+builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
+builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
 builder.Services.AddScoped<IUserRetrievalService, UserRetrievalService>();
-builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
-// Add missing password hashing service
-builder.Services.AddScoped<SOCApi.Services.Password.IPasswordHashingService, SOCApi.Services.Password.PasswordHashingService>();
-
-
+// Configuration
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 var app = builder.Build();
 
-// Ensure database is created for InMemory provider
-using (var scope = app.Services.CreateScope())
+// Database initialization
+if (app.Environment.IsDevelopment())
 {
-    var serviceProvider = scope.ServiceProvider;
+    using var scope = app.Services.CreateScope();
     try
     {
-        var context = serviceProvider.GetRequiredService<SocApiDbContext>();
-        // For InMemory databases, only ensure the database is created, don't run migrations
-        await context.Database.EnsureCreatedAsync();
+        var context = scope.ServiceProvider.GetRequiredService<SocApiDbContext>();
+        await context.Database.MigrateAsync();
     }
     catch (Exception ex)
     {
-        // Log the exception but don't fail startup for database initialization issues
-        var logger = serviceProvider.GetService<ILogger<Program>>();
-        logger?.LogError(ex, "An error occurred while creating the database.");
+        var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+        logger?.LogError(ex, "An error occurred while migrating the database.");
     }
 }
 
-// Configure the HTTP request pipeline.
+// HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference(); // This provides the Swagger-like UI
+    app.MapScalarApiReference();
 }
 
-app.MapIdentityApi<User>();
-
 app.UseHttpsRedirection();
-
+app.UseCors("AllowWebApp");
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapIdentityApi<User>();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 await app.RunAsync();
