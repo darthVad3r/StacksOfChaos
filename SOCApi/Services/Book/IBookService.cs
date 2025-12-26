@@ -9,6 +9,7 @@ namespace SOCApi.Services.Book
         Task<Models.Book?> UpdateBookAsync(Models.Book book);
         Task<bool> DeleteBookAsync(int bookId);
         Task<Models.Book?> GetBookByIdAsync(int bookId);
+        Task<IEnumerable<Models.Book>> GetAllBooksAsync();
 
         // This method should implement the book lookup api call to the 
         // external book look up service like openlibrary.org

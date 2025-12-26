@@ -50,9 +50,9 @@ namespace SOCApi.Services.User
             }          
         }
 
-        private async Task<SOCApi.Models.User> CreateNewUserAsync(string userName, string password, string? firstName = null, string? lastName = null)
+        private async Task<Models.User> CreateNewUserAsync(string userName, string password, string? firstName = null, string? lastName = null)
         {
-            var user = new SOCApi.Models.User 
+            var user = new Models.User 
             { 
                 UserName = userName,
                 Email = userName, // Best practice: use email as username
@@ -92,7 +92,7 @@ namespace SOCApi.Services.User
             }
         }
 
-        public async Task<SOCApi.Models.User> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+        public async Task<Models.User> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
         {
             var success = await _passwordManagementService.ChangePasswordAsync(userId, currentPassword, newPassword);
             if (!success)
@@ -108,27 +108,27 @@ namespace SOCApi.Services.User
             return user;
         }
 
-        public async Task<SOCApi.Models.User?> GetUserByNameAsync(string userName)
+        public async Task<Models.User?> GetUserByNameAsync(string userName)
         {
             return await _userRetrievalService.GetUserByNameAsync(userName);
         }
 
-        public async Task<SOCApi.Models.User?> GetUserByIdAsync(string userId)
+        public async Task<Models.User?> GetUserByIdAsync(string userId)
         {
             return await _userRetrievalService.GetUserByIdAsync(userId);
         }
 
-        public async Task<IEnumerable<SOCApi.Models.User>> GetAllUsersAsync()
+        public async Task<IEnumerable<Models.User>> GetAllUsersAsync()
         {
             return await _userRetrievalService.GetAllUsersAsync();
         }
 
-        public async Task<IdentityResult> CreateUserAsync(SOCApi.Models.User user, string password)
+        public async Task<IdentityResult> CreateUserAsync(Models.User user, string password)
         {
             return await _userManager.CreateAsync(user, password);
         }
 
-        public async Task<SOCApi.Models.User> UpdateUserAsync(SOCApi.Models.User user)
+        public async Task<Models.User> UpdateUserAsync(Models.User user)
         {
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)

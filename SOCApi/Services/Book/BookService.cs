@@ -2,6 +2,8 @@ using SOCApi.Data;
 using SOCApi.Models;
 using Microsoft.EntityFrameworkCore;
 using SOCApi.Services.Interfaces;
+using SOCApi.Services.Common;
+using SOCApi.Services.BookValidation;
 
 namespace SOCApi.Services.Book
 {
@@ -87,6 +89,11 @@ namespace SOCApi.Services.Book
         }
 
         public Task<IEnumerable<Models.Book>> GetBooksByUserAsync(string userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<Models.Book>> IBookService.GetAllBooksAsync()
         {
             throw new NotImplementedException();
         }
