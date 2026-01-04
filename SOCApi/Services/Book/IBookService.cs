@@ -5,7 +5,8 @@ namespace SOCApi.Services.Book
 {
     public interface IBookService
     {
-        Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate);
+        //Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate);
+        Task<Models.Book?> CreateBookAsync(Models.Book book);
         Task<Models.Book?> UpdateBookAsync(Models.Book book);
         Task<bool> DeleteBookAsync(int bookId);
         Task<Models.Book?> GetBookByIdAsync(int bookId);

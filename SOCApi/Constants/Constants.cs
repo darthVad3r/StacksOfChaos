@@ -23,6 +23,18 @@ namespace SOCApi.Constants
         public const string DEFAULT_TIMESTAMP_SQL = "GETUTCDATE()";
     }
 
+    public static class ValidBookConstants
+    {
+        public const int TITLE_MAX_LENGTH = 200;
+        public const int AUTHOR_MAX_LENGTH = 100;
+        public const int GENRE_MAX_LENGTH = 50;
+        public const int ISBN_MAX_LENGTH = 17;
+        public const int DESCRIPTION_MAX_LENGTH = 1000;
+        public const int COVER_IMAGE_URL_MAX_LENGTH = 500;
+        public const int PUBLISHER_MAX_LENGTH = 100;
+        public const int MIN_PUBLICATION_YEAR = 1450;
+    }
+
     // Your existing password constants...
     public static class PasswordConstants
     {

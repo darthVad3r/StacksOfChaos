@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Metadata;
 using SOCApi.Models.Enums;
 
 namespace SOCApi.Models
@@ -56,6 +57,10 @@ namespace SOCApi.Models
 
         public DateTime UpdatedAt { get; set; }
 
+        public DateTime? DeletedAt { get; set; }
+        public Blob CoverImageBlob { get; set; } = default!;
+
+
         // Foreign Keys
         [Required]
         [ForeignKey("User")]
@@ -76,11 +81,12 @@ namespace SOCApi.Models
             UpdatedAt = now;
         }
 
-        public Book(string title, string author, string userId) : this()
+        public Book(string title, string author, string userId, string isbn) : this()
         {
             Title = title;
             Author = author;
             UserId = userId;
+            ISBN = isbn;
         }
 
         public Book(string title, string author, string userId, string? isbn = null, string? genre = null, DateTime? yearPublished = null) : this()

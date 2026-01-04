@@ -49,9 +49,16 @@ namespace SOCApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                // log the validation errors for debugging
+                return BadRequest(ModelState);
+            }
 
-            var updatedBook = await _bookService.UpdateBookAsync(id, book);
+            // Set the book's Id to match the route parameter
+            book.Id = id;
+
+            var updatedBook = await _bookService.UpdateBookAsync(book);
             if (updatedBook == null) return NotFound();
 
             return Ok(updatedBook);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks; // Add this using
 using Scalar.AspNetCore;
 using SOCApi.Configuration;
 using SOCApi.Data;
@@ -39,8 +40,8 @@ builder.Services.AddDbContext<SocApiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Health Checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<SocApiDbContext>();
+//builder.Services.AddHealthChecks()
+//    .AddDbContext<SocApiDbContext>(); // Use AddDbContext instead of AddDbContextCheck
 
 // Identity Configuration
 builder.Services.AddIdentity<User, Role>(options =>

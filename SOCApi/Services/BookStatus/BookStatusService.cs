@@ -1,3 +1,5 @@
+using SOCApi.Models;
+
 namespace SOCApi.Services.BookStatus
 {
     public class BookStatusService : IBookStatusService
@@ -9,7 +11,9 @@ namespace SOCApi.Services.BookStatus
 
         public Task MarkAsAvailableAsync(Models.Book book)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(book);
+            book.Status = Models.Enums.BookStatus.Available;
+            return Task.CompletedTask;
         }
 
         public Task AssignToShelfAsync(Models.Book book, int shelfId)

@@ -1,9 +1,9 @@
 using SOCApi.Data;
 using SOCApi.Models;
 using Microsoft.EntityFrameworkCore;
-using SOCApi.Services.Interfaces;
 using SOCApi.Services.Common;
 using SOCApi.Services.BookValidation;
+using SOCApi.Models.Enums;
 
 namespace SOCApi.Services.Book
 {
@@ -13,7 +13,7 @@ namespace SOCApi.Services.Book
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IBookValidationService _bookValidationService;
 
-        public BookService(SOCApi.Data.SocApiDbContext context, IDateTimeProvider dateTimeProvider, IBookValidationService bookValidationService)
+        public BookService(SocApiDbContext context, IDateTimeProvider dateTimeProvider, IBookValidationService bookValidationService)
         {
             _context = context;
             _dateTimeProvider = dateTimeProvider;
@@ -30,9 +30,32 @@ namespace SOCApi.Services.Book
             return await _context.Books.FindAsync(id);
         }
 
-        public async Task<Models.Book?> CreateBookAsync(string title, string author, string userId, string isbn, DateTime publishedDate)
+        public async Task<Models.Book?> CreateBookAsync(Models.Book mybook)
         {
-            var book = new Models.Book(title, author, userId, isbn, publishedDate)
+            try
+            {
+                await _bookValidationService.ValidateBookAsync(mybook);
+            }
+            catch (Exception ex)
+            {
+                // Handle validation exception (log it, rethrow it, etc.)
+                throw new ArgumentException("Book validation failed: " + ex.Message);
+            }
+            //var book = new Models.Book(title, author, userId, isbn, publishedDate);
+            var book = new Models.Book
+            {
+                Title = mybook.Title,
+                Author = mybook.Author,
+                UserId = mybook.UserId,
+                ISBN = mybook.ISBN,
+                YearPublished = mybook.YearPublished,
+                CreatedAt = _dateTimeProvider.UtcNow,
+                UpdatedAt = _dateTimeProvider.UtcNow,
+                IsActive = true,
+                Status = Models.Enums.BookStatus.Available,
+                CoverImageBlob = mybook.CoverImageBlob,
+                Condition = BookCondition.Good
+            };
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
             return book;
@@ -59,7 +82,7 @@ namespace SOCApi.Services.Book
 
         public void UpdateTimestamp()
         {
-            UpdatedAt = DateTime.UtcNow;
+            var UpdatedAt = DateTime.UtcNow;
         }
 
         public bool IsValidISBNAsync(string isbn)
