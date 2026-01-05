@@ -2,26 +2,40 @@ using Microsoft.AspNetCore.Mvc;
 using SOCApi.Services.Email;
 using SOCApi.Models.Requests;
 
-[ApiController]
-[Route("api/[controller]")]
-public class EmailController : ControllerBase
+namespace SOCApi.Controllers
 {
-    private readonly IEmailSender _emailService;
-
-    public EmailController(IEmailSender emailService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class EmailController : ControllerBase
     {
-        _emailService = emailService;
-    }
+        private readonly IEmailSender _emailService;
 
-    [HttpPost("send")]
-    public async Task<IActionResult> SendEmail([FromBody] EmailRequest emailRequest)
-    {
-        if (!ModelState.IsValid)
+        public EmailController(IEmailSender emailService)
         {
-            return BadRequest(ModelState);
+            _emailService = emailService;
         }
 
-        await _emailService.SendEmailAsync(emailRequest.Email, emailRequest.RecipientName, emailRequest.Subject, emailRequest.Body);
-        return Ok(new { Message = "Email sent successfully." });
+        [HttpPost("send")]
+        public async Task<IActionResult> SendEmail([FromBody] EmailRequest emailRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _emailService.SendEmailAsync(
+                    emailRequest.Email, 
+                    emailRequest.Subject, 
+                    emailRequest.RecipientName, 
+                    emailRequest.Body);
+                return Ok(new { Message = "Email sent successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(500, new { Message = "Failed to send email.", Error = ex.Message });
+            }
+        }
     }
 }

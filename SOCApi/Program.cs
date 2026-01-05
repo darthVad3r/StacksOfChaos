@@ -6,6 +6,7 @@ using SOCApi.Configuration;
 using SOCApi.Data;
 using SOCApi.Models;
 using SOCApi.Services;
+using SOCApi.Services.Email;
 using SOCApi.Services.Password;
 using SOCApi.Services.User;
 using SOCApi.Services.Validation;
@@ -72,6 +73,7 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddApiEndpoints();
 
 // Application Services (alphabetically organized)
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -81,6 +83,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 // Configuration
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
 

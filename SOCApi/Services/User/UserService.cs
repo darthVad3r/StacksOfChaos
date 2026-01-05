@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using SOCApi.Services.Validation;
 using SOCApi.Services.Password;
+using SOCApi.Services.Email;
 using SOCApi.Models;
 
 namespace SOCApi.Services.User
@@ -10,17 +11,20 @@ namespace SOCApi.Services.User
         private readonly UserManager<Models.User> _userManager;
         private readonly IUserRetrievalService _userRetrievalService;
         private readonly IPasswordManagementService _passwordManagementService;
+        private readonly IEmailSender _emailSender;
         private readonly ILogger<UserService> _logger;
 
         public UserService(
             UserManager<Models.User> userManager, 
             IUserRetrievalService userRetrievalService,
             IPasswordManagementService passwordManagementService,
+            IEmailSender emailSender,
             ILogger<UserService> logger)
         {
             _userManager = userManager;
             _userRetrievalService = userRetrievalService;
             _passwordManagementService = passwordManagementService;
+            _emailSender = emailSender;
             _logger = logger;
         }
 
@@ -64,6 +68,8 @@ namespace SOCApi.Services.User
             
             if (result.Succeeded)
             {
+                // Generate email confirmation token and send confirmation email
+                await SendEmailConfirmationAsync(user);
                 return user;
             }
             
@@ -89,6 +95,41 @@ namespace SOCApi.Services.User
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Error checking username availability", ex);
+            }
+        }
+
+        private async Task SendEmailConfirmationAsync(Models.User user)
+        {
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"https://yourdomain.com/api/account/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+                
+                var emailBody = $@"
+                    <html>
+                    <body>
+                        <h2>Welcome to Stacks of Chaos!</h2>
+                        <p>Hi {user.FirstName ?? user.UserName},</p>
+                        <p>Thank you for registering. Please confirm your email address by clicking the link below:</p>
+                        <p><a href=""{confirmationLink}"">Confirm Email</a></p>
+                        <p>If you didn't register for this account, please ignore this email.</p>
+                        <p>Best regards,<br/>Stacks of Chaos Team</p>
+                    </body>
+                    </html>";
+
+                await _emailSender.SendEmailAsync(
+                    user.Email ?? string.Empty,
+                    "Confirm your email address",
+                    user.FirstName ?? user.UserName ?? "User",
+                    emailBody
+                );
+
+                _logger.LogInformation("Confirmation email sent to {Email}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send confirmation email to {Email}", user.Email);
+                // Don't throw - we don't want email failures to prevent registration
             }
         }
 
