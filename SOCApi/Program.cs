@@ -127,3 +127,6 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 await app.RunAsync();
+
+// Make Program class accessible for integration testing
+public partial class Program { }
