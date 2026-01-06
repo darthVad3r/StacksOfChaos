@@ -6,6 +6,9 @@ using SOCApi.Configuration;
 using SOCApi.Data;
 using SOCApi.Models;
 using SOCApi.Services;
+using SOCApi.Services.Book;
+using SOCApi.Services.BookValidation;
+using SOCApi.Services.Common;
 using SOCApi.Services.Email;
 using SOCApi.Services.Password;
 using SOCApi.Services.User;
@@ -73,6 +76,9 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddApiEndpoints();
 
 // Application Services (alphabetically organized)
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IBookValidationService, BookValidationService>();
+builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IEmailTemplateProvider, FileEmailTemplateProvider>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
