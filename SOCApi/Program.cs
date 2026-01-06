@@ -74,6 +74,7 @@ builder.Services.AddIdentity<User, Role>(options =>
 
 // Application Services (alphabetically organized)
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IEmailTemplateProvider, FileEmailTemplateProvider>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();

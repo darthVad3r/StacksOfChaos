@@ -18,6 +18,7 @@ public class EmailSettings
     public string SenderName { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string BaseUrl { get; set; } = string.Empty; // URL for email confirmation links
 }
 
 // Use it in a service
