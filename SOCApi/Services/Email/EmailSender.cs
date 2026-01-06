@@ -23,6 +23,11 @@ namespace SOCApi.Services.Email
         {
             try
             {
+                if (!IsValidEmail(email))
+                {
+                    throw new ArgumentException("Invalid email address.", nameof(email));
+                }
+
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
                 message.To.Add(new MailboxAddress(recipientName, email));
@@ -60,6 +65,24 @@ namespace SOCApi.Services.Email
             {
                 _logger.LogError(ex, "Failed to send email to {Email} with subject: {Subject}", email, subject);
                 throw new InvalidOperationException($"Failed to send email: {ex.Message}", ex);
+            }
+        }
+
+        private static bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email address cannot be empty.", nameof(email));
+            }
+
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
             }
         }
     }
