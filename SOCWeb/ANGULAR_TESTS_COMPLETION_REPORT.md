@@ -37,13 +37,13 @@
    - Covers: Route protection, token validation, navigation, console logging
    - Status: COMPLETE (replaced malformed test setup)
 
-6. ✅ **auth.interceptor.spec.ts** - 40 comprehensive tests
+6. ✅ **auth.interceptor.spec.ts** - 33 comprehensive tests
    - Location: `src/app/services/auth.interceptor.spec.ts`
    - Covers: HTTP interception, Bearer token formatting, request handling
    - Status: COMPLETE (new file created)
 
 ### Total Test Coverage
-- **Total Tests:** 204 unit tests
+- **Total Tests:** 197 unit tests
 - **Coverage Areas:** Services, Components, Guards, Interceptors
 - **Pattern:** Consistent Arrange-Act-Assert throughout
 
@@ -89,7 +89,7 @@
 |---------|-------|----------|
 | AuthService | 32 | Comprehensive |
 | WindowLocationService | 22 | All methods & properties |
-| AuthInterceptor | 40 | Full HTTP interception flow |
+| AuthInterceptor | 33 | Full HTTP interception flow |
 
 **Key Features:**
 - Token validation and storage
@@ -213,7 +213,7 @@ SOCWeb/
 │   │   ├── window-location.service.ts
 │   │   ├── window-location.spec.ts       ✅ 22 tests
 │   │   ├── auth.interceptor.ts
-│   │   └── auth.interceptor.spec.ts      ✅ 40 tests
+│   │   └── auth.interceptor.spec.ts      ✅ 33 tests
 │   ├── login/
 │   │   ├── login.component.ts
 │   │   └── login.component.spec.ts       ✅ 39 tests
@@ -265,7 +265,7 @@ ng test --watch=false --browsers=ChromeHeadless
 ### Coverage Summary
 | Category | Count | Status |
 |----------|-------|--------|
-| Total Tests | 204 | ✅ Complete |
+| Total Tests | 197 | ✅ Complete |
 | Test Files | 6 | ✅ Complete |
 | Services | 3 | ✅ Complete |
 | Components | 2 | ✅ Complete |
@@ -326,7 +326,7 @@ ng test --watch=false --browsers=ChromeHeadless
 
 The Angular web client now has **comprehensive unit test coverage** with:
 
-- **204 tests** across 6 test files
+- **197 tests** across 6 test files
 - **Complete coverage** of all services, components, guards, and interceptors
 - **SOLID principles** applied to all tests
 - **DRY patterns** throughout test suites
@@ -354,5 +354,5 @@ The test suite provides **confidence** that the web client is reliable and can b
 **Date Completed:** 2025-01-10
 **Test Framework:** Jasmine 5.4.0 / Karma 6.4.0
 **Angular Version:** 19.2.14
-**Total Coverage:** 204 tests across 6 files
+**Total Coverage:** 197 tests across 6 files
 

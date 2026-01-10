@@ -277,7 +277,7 @@ Comprehensive unit test suite for the StacksOfChaos SOCWeb Angular application c
 
 ---
 
-### 6. **AuthInterceptor Tests** (`auth.interceptor.spec.ts`) - 40 Tests
+### 6. **AuthInterceptor Tests** (`auth.interceptor.spec.ts`) - 33 Tests
 **File Location:** `src/app/services/auth.interceptor.spec.ts`
 
 #### Test Categories:
@@ -412,8 +412,8 @@ ng test --include='**/auth.service.spec.ts'
 | LoginComponent | login.component.spec.ts | 39 | Form binding, submission, error handling |
 | DashboardComponent | dashboard.component.spec.ts | 28 | Token decoding, lifecycle, edge cases, re-initialization |
 | AuthGuard | auth.guard.spec.ts | 38 | Route activation, navigation |
-| AuthInterceptor | auth.interceptor.spec.ts | 40 | HTTP interception, headers |
-| **TOTAL** | 6 files | **181 Tests** | **Comprehensive** |
+| AuthInterceptor | auth.interceptor.spec.ts | 33 | HTTP interception, headers |
+| **TOTAL** | 6 files | **174 Tests** | **Comprehensive** |
 
 ---
 
