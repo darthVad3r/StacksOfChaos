@@ -4,14 +4,14 @@
 
 | File | Location | Tests | Focus |
 |------|----------|-------|-------|
-| auth.service.spec.ts | `src/app/services/` | 32 | Authentication, tokens, user status |
+| auth.service.spec.ts | `src/app/services/` | 14 | Authentication, tokens, user status |
 | window-location.spec.ts | `src/app/services/` | 22 | Window location wrapping |
 | auth.interceptor.spec.ts | `src/app/services/` | 40 | HTTP interception, Bearer tokens |
 | login.component.spec.ts | `src/app/login/` | 39 | Form submission, error handling |
 | dashboard.component.spec.ts | `src/app/dashboard/` | 33 | JWT decoding, user info display |
 | auth.guard.spec.ts | `src/app/guards/` | 38 | Route protection, navigation |
 
-**Total:** 204 tests across 6 files
+**Total:** 174 tests across 6 files
 
 ---
 
@@ -368,7 +368,7 @@ xdescribe('skipped suite', () => {
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 204 |
+| Total Tests | 174 |
 | Test Files | 6 |
 | Services Covered | 3 |
 | Components Covered | 2 |
