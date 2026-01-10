@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks; // Add this using
 using Scalar.AspNetCore;
 using SOCApi.Configuration;
 using SOCApi.Data;
+using SOCApi.Middleware;
 using SOCApi.Models;
 using SOCApi.Services;
+using SOCApi.Services.Book;
+using SOCApi.Services.BookValidation;
+using SOCApi.Services.Common;
 using SOCApi.Services.Password;
 using SOCApi.Services.User;
 using SOCApi.Services.Validation;
@@ -40,8 +43,8 @@ builder.Services.AddDbContext<SocApiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Health Checks
-//builder.Services.AddHealthChecks()
-//    .AddDbContext<SocApiDbContext>(); // Use AddDbContext instead of AddDbContextCheck
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SocApiDbContext>("database");
 
 // Identity Configuration
 builder.Services.AddIdentity<User, Role>(options =>
@@ -72,6 +75,9 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddApiEndpoints();
 
 // Application Services (alphabetically organized)
+builder.Services.AddScoped<SOCApi.Services.Book.IBookService, SOCApi.Services.Book.BookService>();
+builder.Services.AddScoped<SOCApi.Services.BookValidation.IBookValidationService, SOCApi.Services.BookValidation.BookValidationService>();
+builder.Services.AddScoped<SOCApi.Services.Common.IDateTimeProvider, SOCApi.Services.Common.DateTimeProvider>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -99,6 +105,9 @@ if (app.Environment.IsDevelopment())
         logger?.LogError(ex, "An error occurred while migrating the database.");
     }
 }
+
+// Global Exception Handler - MUST be first in the middleware pipeline
+app.UseGlobalExceptionHandler();
 
 // HTTP request pipeline
 if (app.Environment.IsDevelopment())
