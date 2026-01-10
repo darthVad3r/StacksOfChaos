@@ -192,10 +192,20 @@ describe('DashboardComponent', () => {
     });
   });
 
+  // Helper function to create a valid JWT token with custom payload
+  function createMockJwt(payload: any): string {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const encodedPayload = btoa(JSON.stringify(payload));
+    return `${header}.${encodedPayload}.mock-signature`;
+  }
+
   // Edge Cases Tests
   describe('Edge Cases', () => {
     it('should handle token with special characters in claims', () => {
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiBPJ0RvZS1TbWl0aCIsImVtYWlsIjoiam9objsrcHNwZWNpYWxAZXhhbXBsZS5jby51ayJ9.signature';
+      const mockToken = createMockJwt({
+        name: 'John O\'Doe-Smith',
+        email: 'john+special@example.co.uk'
+      });
       localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
@@ -206,9 +216,11 @@ describe('DashboardComponent', () => {
 
     it('should handle very long email addresses', () => {
       const longEmail = 'a'.repeat(100) + '@example.com';
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiIsImVtYWlsIjoiJyArIGxvbmdFbWFpbCArICcifQ.signature';
-      const encodedToken = btoa(JSON.stringify({ name: 'John', email: longEmail }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedToken}.signature`);
+      const mockToken = createMockJwt({
+        name: 'John',
+        email: longEmail
+      });
+      localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
       
@@ -217,8 +229,11 @@ describe('DashboardComponent', () => {
 
     it('should handle very long user names', () => {
       const longName = 'John Doe ' + 'the Great '.repeat(20);
-      const encodedToken = btoa(JSON.stringify({ name: longName, email: 'john@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedToken}.signature`);
+      const mockToken = createMockJwt({
+        name: longName,
+        email: 'john@example.com'
+      });
+      localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
       
@@ -226,8 +241,11 @@ describe('DashboardComponent', () => {
     });
 
     it('should handle unicode characters in user name', () => {
-      const encodedToken = btoa(JSON.stringify({ name: 'José María García', email: 'jose@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedToken}.signature`);
+      const mockToken = createMockJwt({
+        name: 'José María García',
+        email: 'jose@example.com'
+      });
+      localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
       
@@ -235,8 +253,11 @@ describe('DashboardComponent', () => {
     });
 
     it('should handle unicode characters in email', () => {
-      const encodedToken = btoa(JSON.stringify({ name: 'Jose', email: 'josé@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedToken}.signature`);
+      const mockToken = createMockJwt({
+        name: 'Jose',
+        email: 'josé@example.com'
+      });
+      localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
       
@@ -244,8 +265,11 @@ describe('DashboardComponent', () => {
     });
 
     it('should handle whitespace in user information', () => {
-      const encodedToken = btoa(JSON.stringify({ name: '  John Doe  ', email: '  john@example.com  ' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedToken}.signature`);
+      const mockToken = createMockJwt({
+        name: '  John Doe  ',
+        email: '  john@example.com  '
+      });
+      localStorage.setItem('jwtToken', mockToken);
       
       component.ngOnInit();
       
@@ -280,46 +304,46 @@ describe('DashboardComponent', () => {
   // State Management Tests
   describe('Component State', () => {
     it('should maintain userName state across multiple calls', () => {
-      const mockToken1 = btoa(JSON.stringify({ name: 'First User', email: 'first@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken1}.signature`);
+      const mockToken1 = createMockJwt({ name: 'First User', email: 'first@example.com' });
+      localStorage.setItem('jwtToken', mockToken1);
       component.ngOnInit();
       expect(component.userName).toBe('First User');
       
-      const mockToken2 = btoa(JSON.stringify({ name: 'Second User', email: 'second@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken2}.signature`);
+      const mockToken2 = createMockJwt({ name: 'Second User', email: 'second@example.com' });
+      localStorage.setItem('jwtToken', mockToken2);
       component.ngOnInit();
       expect(component.userName).toBe('Second User');
     });
 
     it('should maintain userEmail state across multiple calls', () => {
-      const mockToken1 = btoa(JSON.stringify({ name: 'User', email: 'first@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken1}.signature`);
+      const mockToken1 = createMockJwt({ name: 'User', email: 'first@example.com' });
+      localStorage.setItem('jwtToken', mockToken1);
       component.ngOnInit();
       expect(component.userEmail).toBe('first@example.com');
       
-      const mockToken2 = btoa(JSON.stringify({ name: 'User', email: 'second@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken2}.signature`);
+      const mockToken2 = createMockJwt({ name: 'User', email: 'second@example.com' });
+      localStorage.setItem('jwtToken', mockToken2);
       component.ngOnInit();
       expect(component.userEmail).toBe('second@example.com');
     });
 
     it('should allow independent modification of userName and userEmail', () => {
-      const mockToken = btoa(JSON.stringify({ name: 'John', email: 'john@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken}.signature`);
+      const mockToken = createMockJwt({ name: 'John', email: 'john@example.com' });
+      localStorage.setItem('jwtToken', mockToken);
       component.ngOnInit();
       expect(component.userName).toBe('John');
       expect(component.userEmail).toBe('john@example.com');
       
-      const mockToken2 = btoa(JSON.stringify({ name: 'Jane', email: 'john@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken2}.signature`);
+      const mockToken2 = createMockJwt({ name: 'Jane', email: 'john@example.com' });
+      localStorage.setItem('jwtToken', mockToken2);
       component.ngOnInit();
       expect(component.userName).toBe('Jane');
       expect(component.userEmail).toBe('john@example.com');
     });
 
     it('should be able to reset user information', () => {
-      const mockToken = btoa(JSON.stringify({ name: 'John Doe', email: 'john@example.com' }));
-      localStorage.setItem('jwtToken', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${mockToken}.signature`);
+      const mockToken = createMockJwt({ name: 'John Doe', email: 'john@example.com' });
+      localStorage.setItem('jwtToken', mockToken);
       component.ngOnInit();
       expect(component.userName).toBe('John Doe');
       expect(component.userEmail).toBe('john@example.com');
