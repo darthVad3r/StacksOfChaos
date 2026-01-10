@@ -5,7 +5,6 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let jwtHelperMock: jasmine.SpyObj<JwtHelperService>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
