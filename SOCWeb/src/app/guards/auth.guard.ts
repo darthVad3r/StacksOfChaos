@@ -10,9 +10,9 @@ export class AuthGuard implements CanActivate {
     // Check if the token exists in localStorage
     // Optionally, you can add more checks here (e.g., token expiration)
     // or use a service to validate the token
-    // For simplicity, we just check if the token is present
+    // For simplicity, we just check if the token is present and not empty/whitespace
     console.log('AuthGuard checking token:', token);
-    if (token) {
+    if (token && token.trim()) {
       console.log('User is authenticated');
       // Optionally, you can redirect to a specific route if authenticated
       // this.router.navigate(['/dashboard']);
