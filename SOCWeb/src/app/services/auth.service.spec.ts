@@ -144,12 +144,45 @@ describe('AuthService', () => {
   });
 
   describe('Google Authentication', () => {
-    it('should construct correct Google login URL', () => {
-      expect(true).toBe(true); // Placeholder for window.location redirect testing
+    it('should redirect to Google login endpoint', () => {
+      const originalLocation = window.location.href;
+      
+      // Create a setter spy to track window.location.href assignments
+      let redirectUrl = '';
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { href: '' }
+      });
+      
+      service.loginWithGoogle();
+      
+      expect(window.location.href).toBe(`${apiUrl}/google-login`);
+      
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { href: originalLocation }
+      });
     });
 
-    it('should construct correct Google logout URL', () => {
-      expect(true).toBe(true); // Placeholder for window.location redirect testing
+    it('should redirect to Google logout endpoint', () => {
+      const originalLocation = window.location.href;
+      
+      // Create a setter spy to track window.location.href assignments
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { href: '' }
+      });
+      
+      service.logout();
+      
+      expect(window.location.href).toBe(`${apiUrl}/google-logout`);
+      
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { href: originalLocation }
+      });
     });
   });
 });

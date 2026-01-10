@@ -25,20 +25,14 @@ describe('DashboardComponent', () => {
 
   // Component Instantiation Tests
   describe('Component Creation', () => {
-    it('should create the component', () => {
+    it('should create the component with initial null state', () => {
       expect(component).toBeTruthy();
-    });
-
-    it('should initialize with null userName', () => {
       expect(component.userName).toBeNull();
-    });
-
-    it('should initialize with null userEmail', () => {
       expect(component.userEmail).toBeNull();
     });
 
-    it('should have ngOnInit method', () => {
-      expect(component.ngOnInit).toBeDefined();
+    it('should have ngOnInit lifecycle hook', () => {
+      expect(typeof component.ngOnInit).toBe('function');
     });
   });
 
@@ -165,15 +159,18 @@ describe('DashboardComponent', () => {
 
   // Component Lifecycle Tests
   describe('Component Lifecycle', () => {
-    it('should execute ngOnInit on component creation', () => {
-      spyOn(component, 'ngOnInit');
-      fixture.detectChanges();
-      // Component's ngOnInit was already called during fixture.detectChanges()
-      expect(component.ngOnInit).toBeDefined();
+    it('should initialize component properties from JWT token on ngOnInit', () => {
+      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20ifQ.signature';
+      localStorage.setItem('jwtToken', mockToken);
+
+      component.ngOnInit();
+
+      expect(component.userName).toBe('John Doe');
+      expect(component.userEmail).toBe('john@example.com');
     });
 
-    it('should process token on initialization with token present', () => {
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature';
+    it('should log decoded token when token is present', () => {
+      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiBEb2UiLCJlbWFpbCI6ImpvaG5AZXhhbXBsZS5jb20ifQ.signature';
       localStorage.setItem('jwtToken', mockToken);
       spyOn(console, 'log');
 
@@ -182,7 +179,7 @@ describe('DashboardComponent', () => {
       expect(console.log).toHaveBeenCalledWith('Decoded JWT Token:', jasmine.any(Object));
     });
 
-    it('should handle initialization without token', () => {
+    it('should log error when token is missing during initialization', () => {
       localStorage.clear();
       spyOn(console, 'error');
 
@@ -280,76 +277,73 @@ describe('DashboardComponent', () => {
 
   // Integration Tests
   describe('Integration with JwtHelperService', () => {
-    it('should create JwtHelperService instance', () => {
-      const jwtHelper = new JwtHelperService();
-      expect(jwtHelper).toBeTruthy();
-    });
-
-    it('should use JwtHelperService to decode tokens', () => {
-      const jwtHelper = new JwtHelperService();
-      expect(jwtHelper.decodeToken).toBeDefined();
-    });
-
-    it('should handle JwtHelperService in ngOnInit flow', () => {
-      localStorage.setItem('jwtToken', 'test-token');
+    it('should decode and use token from JwtHelperService in ngOnInit', () => {
+      const mockToken = createMockJwt({
+        name: 'Integration Test User',
+        email: 'integration@example.com'
+      });
+      localStorage.setItem('jwtToken', mockToken);
       spyOn(console, 'log');
 
       component.ngOnInit();
 
-      // Verify the component attempted to decode
-      expect(console.log).toHaveBeenCalled();
+      // Verify the component decoded and used the token correctly
+      expect(console.log).toHaveBeenCalledWith('Decoded JWT Token:', jasmine.any(Object));
+      expect(component.userName).toBe('Integration Test User');
+      expect(component.userEmail).toBe('integration@example.com');
+    });
+
+    it('should handle decoding errors gracefully when token is invalid', () => {
+      const invalidToken = 'invalid.token.format';
+      localStorage.setItem('jwtToken', invalidToken);
+      spyOn(console, 'log');
+
+      component.ngOnInit();
+
+      // Component should still attempt to decode (JwtHelperService handles it)
+      expect(console.log).toHaveBeenCalledWith('Decoded JWT Token:', jasmine.any(Object));
+    });
+
+    it('should log decoded token details during ngOnInit', () => {
+      const mockToken = createMockJwt({
+        name: 'Test User',
+        email: 'test@example.com',
+        role: 'user'
+      });
+      localStorage.setItem('jwtToken', mockToken);
+      spyOn(console, 'log');
+
+      component.ngOnInit();
+
+      // Verify component logs the decoded token for debugging
+      expect(console.log).toHaveBeenCalledWith('Decoded JWT Token:', jasmine.any(Object));
     });
   });
 
-  // State Management Tests
-  describe('Component State', () => {
-    it('should maintain userName state across multiple calls', () => {
+  // Re-initialization Scenarios
+  describe('Re-initialization Scenarios', () => {
+    it('should update properties when ngOnInit is called with new token', () => {
       const mockToken1 = createMockJwt({ name: 'First User', email: 'first@example.com' });
       localStorage.setItem('jwtToken', mockToken1);
       component.ngOnInit();
-      expect(component.userName).toBe('First User');
       
       const mockToken2 = createMockJwt({ name: 'Second User', email: 'second@example.com' });
       localStorage.setItem('jwtToken', mockToken2);
       component.ngOnInit();
-      expect(component.userName).toBe('Second User');
-    });
-
-    it('should maintain userEmail state across multiple calls', () => {
-      const mockToken1 = createMockJwt({ name: 'User', email: 'first@example.com' });
-      localStorage.setItem('jwtToken', mockToken1);
-      component.ngOnInit();
-      expect(component.userEmail).toBe('first@example.com');
       
-      const mockToken2 = createMockJwt({ name: 'User', email: 'second@example.com' });
-      localStorage.setItem('jwtToken', mockToken2);
-      component.ngOnInit();
+      expect(component.userName).toBe('Second User');
       expect(component.userEmail).toBe('second@example.com');
     });
 
-    it('should allow independent modification of userName and userEmail', () => {
-      const mockToken = createMockJwt({ name: 'John', email: 'john@example.com' });
-      localStorage.setItem('jwtToken', mockToken);
-      component.ngOnInit();
-      expect(component.userName).toBe('John');
-      expect(component.userEmail).toBe('john@example.com');
-      
-      const mockToken2 = createMockJwt({ name: 'Jane', email: 'john@example.com' });
-      localStorage.setItem('jwtToken', mockToken2);
-      component.ngOnInit();
-      expect(component.userName).toBe('Jane');
-      expect(component.userEmail).toBe('john@example.com');
-    });
-
-    it('should be able to reset user information', () => {
+    it('should clear properties when token is removed and ngOnInit is called again', () => {
       const mockToken = createMockJwt({ name: 'John Doe', email: 'john@example.com' });
       localStorage.setItem('jwtToken', mockToken);
       component.ngOnInit();
       expect(component.userName).toBe('John Doe');
-      expect(component.userEmail).toBe('john@example.com');
       
       localStorage.removeItem('jwtToken');
       component.ngOnInit();
+      
       expect(component.userName).toBeNull();
       expect(component.userEmail).toBeNull();
     });

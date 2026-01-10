@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HttpRequest } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
@@ -366,8 +366,8 @@ describe('AuthInterceptor', () => {
       req.flush({});
     });
 
-    it('should handle whitespace in token', () => {
-      // Tokens with whitespace are unusual but should be passed through
+    it('should handle tokens containing internal whitespace', () => {
+      // Tokens with internal whitespace are unusual but should be passed through
       const tokenWithSpace = 'token value';
       authServiceMock.getToken.and.returnValue(tokenWithSpace);
 

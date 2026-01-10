@@ -5,13 +5,13 @@ Comprehensive unit test suite for the StacksOfChaos SOCWeb Angular application c
 
 ## Test Coverage
 
-### 1. **AuthService Tests** (`auth.service.spec.ts`) - 32 Tests
+### 1. **AuthService Tests** (`auth.service.spec.ts`) - 14 Tests
 **File Location:** `src/app/services/auth.service.spec.ts`
 
 #### Test Categories:
 - **signIn (3 tests)**
   - Valid credentials submission
-  - Error handling with invalid credentials
+  - Error handling with invalid credentials (401 status)
   - Special character handling in email/password
   
 - **Token Management (5 tests)**
@@ -26,28 +26,26 @@ Comprehensive unit test suite for the StacksOfChaos SOCWeb Angular application c
   - Return false when not authenticated
   - Synchronize isLoggedIn with isAuthenticated
 
-- **Return URL Management (3 tests)**
+- **Return URL Management (2 tests)**
   - Store return URLs in localStorage
   - Overwrite existing return URLs
-  - Handle complex/special character URLs
 
 - **Google Authentication (2 tests)**
-  - Construct login URL
-  - Construct logout URL
-
-- **API Integration (2 tests)**
-  - Use correct API URL
-  - Handle server errors
-
-- **Data Consistency (2 tests)**
-  - Maintain token across calls
-  - Reflect localStorage changes
+  - Redirect to Google login endpoint
+  - Redirect to Google logout endpoint
 
 **Key Features:**
 - HttpClientTestingModule for HTTP mocking
 - SpyObj for Router mocking
 - localStorage testing with cleanup in afterEach
 - No outstanding HTTP requests verification
+- POST request body validation
+- HTTP status code error handling (401)
+- Window.location.href testing for Google OAuth redirects
+
+**Coverage Notes:**
+- All core authentication methods tested
+- Actual test coverage: signIn, token retrieval/formatting, authentication status checks, return URL storage, Google OAuth redirects
 
 ---
 
@@ -151,14 +149,13 @@ Comprehensive unit test suite for the StacksOfChaos SOCWeb Angular application c
 
 ---
 
-### 4. **DashboardComponent Tests** (`dashboard.component.spec.ts`) - 33 Tests
+### 4. **DashboardComponent Tests** (`dashboard.component.spec.ts`) - 28 Tests
 **File Location:** `src/app/dashboard/dashboard.component.spec.ts`
 
 #### Test Categories:
-- **Component Creation (3 tests)**
-  - Component instantiation
-  - Null userName initialization
-  - Null userEmail initialization
+- **Component Creation (2 tests)**
+  - Component instantiation with initial null state
+  - ngOnInit lifecycle hook verification
 
 - **JWT Token Decoding (3 tests)**
   - Decode JWT from localStorage
@@ -179,34 +176,35 @@ Comprehensive unit test suite for the StacksOfChaos SOCWeb Angular application c
   - Store multiple properties
 
 - **Component Lifecycle (3 tests)**
-  - Execute ngOnInit on creation
-  - Process token when present
-  - Handle initialization without token
+  - Initialize component properties from JWT token
+  - Log decoded token when present
+  - Log error when token missing
 
 - **Edge Cases (6 tests)**
-  - Special characters in user name
-  - Very long email addresses
-  - Very long user names
-  - Unicode characters in name
-  - Unicode characters in email
-  - Whitespace in user information
+  - Special characters in claims (via ngOnInit)
+  - Very long email addresses (via ngOnInit)
+  - Very long user names (via ngOnInit)
+  - Unicode characters in name (via ngOnInit)
+  - Unicode characters in email (via ngOnInit)
+  - Whitespace in user information (via ngOnInit)
 
 - **JwtHelperService Integration (3 tests)**
-  - Create JwtHelperService instance
-  - Use decodeToken method
-  - Handle service in ngOnInit flow
+  - Decode and use token in ngOnInit
+  - Handle decoding errors gracefully
+  - Log decoded token details
 
-- **Component State (4 tests)**
-  - Maintain userName state
-  - Maintain userEmail state
-  - Independent property modifications
-  - Reset user information
+- **Re-initialization Scenarios (2 tests)**
+  - Update properties when ngOnInit called with new token
+  - Clear properties when token removed and ngOnInit called again
 
 **Key Features:**
 - localStorage mocking and cleanup
-- JWT decoding verification
+- JWT decoding verification via actual component behavior
 - Non-standalone component testing
 - Comprehensive null/undefined handling
+- Helper function (createMockJwt) for generating valid JWT tokens
+- All edge case tests validate actual component logic through ngOnInit()
+- No trivial property assignment tests - all tests verify real behavior
 
 ---
 
@@ -409,13 +407,13 @@ ng test --include='**/auth.service.spec.ts'
 
 | Component/Service | Test File | Test Count | Coverage |
 |---|---|---|---|
-| AuthService | auth.service.spec.ts | 32 | All methods & edge cases |
+| AuthService | auth.service.spec.ts | 14 | signIn, token management, authentication status, return URL, Google OAuth redirects |
 | WindowLocationService | window-location.spec.ts | 22 | All methods & properties |
 | LoginComponent | login.component.spec.ts | 39 | Form binding, submission, error handling |
-| DashboardComponent | dashboard.component.spec.ts | 33 | Token decoding, state management |
+| DashboardComponent | dashboard.component.spec.ts | 28 | Token decoding, lifecycle, edge cases, re-initialization |
 | AuthGuard | auth.guard.spec.ts | 38 | Route activation, navigation |
 | AuthInterceptor | auth.interceptor.spec.ts | 40 | HTTP interception, headers |
-| **TOTAL** | 6 files | **204 Tests** | **Comprehensive** |
+| **TOTAL** | 6 files | **181 Tests** | **Comprehensive** |
 
 ---
 
