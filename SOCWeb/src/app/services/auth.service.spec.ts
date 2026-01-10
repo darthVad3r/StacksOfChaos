@@ -148,7 +148,6 @@ describe('AuthService', () => {
       const originalLocation = window.location.href;
       
       // Create a setter spy to track window.location.href assignments
-      let redirectUrl = '';
       Object.defineProperty(window, 'location', {
         writable: true,
         value: { href: '' }
