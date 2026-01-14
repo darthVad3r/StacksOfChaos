@@ -75,15 +75,15 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddApiEndpoints();
 
 // Application Services (alphabetically organized)
-builder.Services.AddScoped<SOCApi.Services.Book.IBookService, SOCApi.Services.Book.BookService>();
-builder.Services.AddScoped<SOCApi.Services.BookValidation.IBookValidationService, SOCApi.Services.BookValidation.BookValidationService>();
-builder.Services.AddScoped<SOCApi.Services.Common.IDateTimeProvider, SOCApi.Services.Common.DateTimeProvider>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPasswordManagementService, PasswordManagementService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
 builder.Services.AddScoped<IUserRetrievalService, UserRetrievalService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<Book.IBookService, Book.BookService>();
+builder.Services.AddScoped<BookValidation.IBookValidationService, BookValidation.BookValidationService>();
+builder.Services.AddScoped<Common.IDateTimeProvider, Common.DateTimeProvider>();
 
 // Configuration
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));

@@ -6,13 +6,13 @@ This implementation provides a comprehensive error handling solution for the SOC
 
 ## Features
 
-? **Standardized Error Responses** - All errors return consistent JSON format  
-? **Custom Exception Types** - Domain-specific exceptions for common scenarios  
-? **Global Exception Handler** - Centralized error handling middleware  
-? **Environment-Aware** - Different error details for dev vs production  
-? **Automatic Logging** - All exceptions are logged automatically  
-? **Trace IDs** - Unique identifiers for debugging  
-? **OpenAPI Integration** - ProducesResponseType attributes for documentation  
+- **Standardized Error Responses** - All errors return consistent JSON format  
+- **Custom Exception Types** - Domain-specific exceptions for common scenarios  
+- **Global Exception Handler** - Centralized error handling middleware  
+- **Environment-Aware** - Different error details for dev vs production  
+- **Automatic Logging** - All exceptions are logged automatically  
+- **Trace IDs** - Unique identifiers for debugging  
+- **OpenAPI Integration** - ProducesResponseType attributes for documentation  
 
 ## Files Added
 
@@ -180,12 +180,12 @@ curl -X GET https://localhost:5001/api/book
 
 ## Best Practices
 
-1. ? Use specific exception types instead of generic exceptions
-2. ? Provide context in error messages
-3. ? Never expose sensitive data in errors
-4. ? Log exceptions before throwing (if needed)
-5. ? Use appropriate HTTP status codes
-6. ? Include ProducesResponseType for API documentation
+1. ✓ Use specific exception types instead of generic exceptions
+2. ✓ Provide context in error messages
+3. ✓ Never expose sensitive data in errors
+4. ✓ Log exceptions before throwing (if needed)
+5. ✓ Use appropriate HTTP status codes
+6. ✓ Include ProducesResponseType for API documentation
 
 ## Migration Guide
 
