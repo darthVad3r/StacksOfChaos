@@ -79,13 +79,7 @@ namespace SOCApi.Controllers
                 throw new ValidationException(errors);
             }
 
-            var createdBook = await _bookService.CreateBookAsync(book);
-            
-            if (createdBook == null)
-            {
-                throw new BusinessLogicException("Failed to create book. Please check the provided data.");
-            }
-
+            var createdBook = await _bookService.CreateBookAsync(book) ?? throw new BusinessLogicException("Failed to create book. Please check the provided data.");
             _logger.LogInformation("Book created with ID: {BookId}", createdBook.Id);
             
             return CreatedAtAction(nameof(GetBookById), new { id = createdBook.Id }, createdBook);
