@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks; // Add this using
 using Scalar.AspNetCore;
 using SOCApi.Configuration;
 using SOCApi.Data;
+using SOCApi.Middleware;
 using SOCApi.Models;
 using SOCApi.Services;
 using SOCApi.Services.Book;
@@ -44,8 +44,8 @@ builder.Services.AddDbContext<SocApiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Health Checks
-//builder.Services.AddHealthChecks()
-//    .AddDbContext<SocApiDbContext>(); // Use AddDbContext instead of AddDbContextCheck
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SocApiDbContext>("database");
 
 // Identity Configuration
 builder.Services.AddIdentity<User, Role>(options =>
@@ -87,6 +87,9 @@ builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
 builder.Services.AddScoped<IUserRetrievalService, UserRetrievalService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<Book.IBookService, Book.BookService>();
+builder.Services.AddScoped<BookValidation.IBookValidationService, BookValidation.BookValidationService>();
+builder.Services.AddScoped<Common.IDateTimeProvider, Common.DateTimeProvider>();
 
 // Configuration
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
@@ -109,6 +112,9 @@ if (app.Environment.IsDevelopment())
         logger?.LogError(ex, "An error occurred while migrating the database.");
     }
 }
+
+// Global Exception Handler - MUST be first in the middleware pipeline
+app.UseGlobalExceptionHandler();
 
 // HTTP request pipeline
 if (app.Environment.IsDevelopment())
