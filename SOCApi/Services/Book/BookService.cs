@@ -7,118 +7,286 @@ using SOCApi.Models.Enums;
 
 namespace SOCApi.Services.Book
 {
+    /// <summary>
+    /// Service for managing book operations including CRUD operations,
+    /// user book management, and ISBN lookups.
+    /// </summary>
     public class BookService : IBookService
     {
         private readonly SocApiDbContext _context;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IBookValidationService _bookValidationService;
+        private readonly ILogger<BookService> _logger;
 
-        public BookService(SocApiDbContext context, IDateTimeProvider dateTimeProvider, IBookValidationService bookValidationService)
+        public BookService(
+            SocApiDbContext context,
+            IDateTimeProvider dateTimeProvider,
+            IBookValidationService bookValidationService,
+            ILogger<BookService> logger)
         {
             _context = context;
             _dateTimeProvider = dateTimeProvider;
             _bookValidationService = bookValidationService;
+            _logger = logger;
         }
 
-        public async Task<List<Models.Book>> GetAllBooksAsync()
-        {
-            return await _context.Books.ToListAsync();
-        }
-
-        public async Task<Models.Book?> GetBookByIdAsync(int id)
-        {
-            return await _context.Books.FindAsync(id);
-        }
-
-        public async Task<Models.Book?> CreateBookAsync(Models.Book mybook)
+        /// <summary>
+        /// Retrieves all active books from the database.
+        /// </summary>
+        public async Task<IEnumerable<Models.Book>> GetAllBooksAsync()
         {
             try
             {
-                await _bookValidationService.ValidateBookAsync(mybook);
+                return await _context.Books
+                    .Where(b => b.IsActive)
+                    .OrderByDescending(b => b.CreatedAt)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
-                // Handle validation exception (log it, rethrow it, etc.)
-                throw new ArgumentException("Book validation failed: " + ex.Message);
+                _logger.LogError(ex, "Error retrieving all books");
+                throw;
             }
-            //var book = new Models.Book(title, author, userId, isbn, publishedDate);
-            var book = new Models.Book
-            {
-                Title = mybook.Title,
-                Author = mybook.Author,
-                UserId = mybook.UserId,
-                ISBN = mybook.ISBN,
-                YearPublished = mybook.YearPublished,
-                CreatedAt = _dateTimeProvider.UtcNow,
-                UpdatedAt = _dateTimeProvider.UtcNow,
-                IsActive = true,
-                Status = Models.Enums.BookStatus.Available,
-                CoverImageBlob = mybook.CoverImageBlob,
-                Condition = BookCondition.Good
-            };
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-            return book;
         }
 
-        public async Task<Models.Book?> UpdateBookAsync(int id, Models.Book book)
+        /// <summary>
+        /// Retrieves a specific book by its ID.
+        /// </summary>
+        public async Task<Models.Book?> GetBookByIdAsync(int id)
         {
-            if (id != book.Id) return null;
+            try
+            {
+                if (id <= 0)
+                {
+                    _logger.LogWarning("Invalid book ID requested: {BookId}", id);
+                    return null;
+                }
 
-            _context.Entry(book).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return book;
+                return await _context.Books
+                    .Include(b => b.User)
+                    .Include(b => b.Shelf)
+                    .FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving book with ID: {BookId}", id);
+                throw;
+            }
         }
 
+        /// <summary>
+        /// Creates a new book with validation.
+        /// </summary>
+        public async Task<Models.Book?> CreateBookAsync(Models.Book book)
+        {
+            try
+            {
+                if (book == null)
+                {
+                    throw new ArgumentNullException(nameof(book));
+                }
+
+                // Validate the book
+                await _bookValidationService.ValidateBookAsync(book);
+
+                // Create the book entity
+                var newBook = new Models.Book
+                {
+                    Title = book.Title,
+                    Author = book.Author,
+                    UserId = book.UserId,
+                    ISBN = book.ISBN,
+                    YearPublished = book.YearPublished,
+                    Genre = book.Genre,
+                    Description = book.Description,
+                    CoverImageUrl = book.CoverImageUrl,
+                    Publisher = book.Publisher,
+                    PageCount = book.PageCount,
+                    Language = book.Language ?? "English",
+                    Price = book.Price,
+                    PurchaseDate = book.PurchaseDate,
+                    CreatedAt = _dateTimeProvider.UtcNow,
+                    UpdatedAt = _dateTimeProvider.UtcNow,
+                    IsActive = true,
+                    Status = SOCApi.Models.Enums.BookStatus.Available,
+                    Condition = book.Condition,
+                    CoverImageBlob = book.CoverImageBlob,
+                    ShelfId = book.ShelfId
+                };
+
+                _context.Books.Add(newBook);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Book created successfully: {BookId}", newBook.Id);
+                return newBook;
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Book validation failed");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating book");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing book.
+        /// </summary>
+        public async Task<Models.Book?> UpdateBookAsync(Models.Book book)
+        {
+            try
+            {
+                if (book == null)
+                {
+                    throw new ArgumentNullException(nameof(book));
+                }
+
+                if (book.Id <= 0)
+                {
+                    throw new ArgumentException("Invalid book ID", nameof(book.Id));
+                }
+
+                // Check if book exists
+                var existingBook = await _context.Books.FirstOrDefaultAsync(b => b.Id == book.Id);
+                if (existingBook == null)
+                {
+                    _logger.LogWarning("Book not found for update: {BookId}", book.Id);
+                    return null;
+                }
+
+                // Validate the book
+                await _bookValidationService.ValidateBookAsync(book);
+
+                // Update properties
+                existingBook.Title = book.Title;
+                existingBook.Author = book.Author;
+                existingBook.ISBN = book.ISBN;
+                existingBook.YearPublished = book.YearPublished;
+                existingBook.Genre = book.Genre;
+                existingBook.Description = book.Description;
+                existingBook.CoverImageUrl = book.CoverImageUrl;
+                existingBook.Publisher = book.Publisher;
+                existingBook.PageCount = book.PageCount;
+                existingBook.Language = book.Language ?? "English";
+                existingBook.Price = book.Price;
+                existingBook.PurchaseDate = book.PurchaseDate;
+                existingBook.Condition = book.Condition;
+                existingBook.Status = book.Status;
+                existingBook.CoverImageBlob = book.CoverImageBlob;
+                existingBook.ShelfId = book.ShelfId;
+                existingBook.UpdatedAt = _dateTimeProvider.UtcNow;
+
+                _context.Entry(existingBook).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Book updated successfully: {BookId}", existingBook.Id);
+                return existingBook;
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Book validation failed during update");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating book: {BookId}", book?.Id);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Deletes a book (soft delete via IsActive flag).
+        /// </summary>
         public async Task<bool> DeleteBookAsync(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null) return false;
+            try
+            {
+                if (id <= 0)
+                {
+                    _logger.LogWarning("Invalid book ID for deletion: {BookId}", id);
+                    return false;
+                }
 
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-            return true;
+                var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
+                if (book == null)
+                {
+                    _logger.LogWarning("Book not found for deletion: {BookId}", id);
+                    return false;
+                }
+
+                // Soft delete
+                book.IsActive = false;
+                book.DeletedAt = _dateTimeProvider.UtcNow;
+                book.UpdatedAt = _dateTimeProvider.UtcNow;
+
+                _context.Entry(book).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Book deleted successfully: {BookId}", id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting book: {BookId}", id);
+                throw;
+            }
         }
 
-        public void UpdateTimestamp()
+        /// <summary>
+        /// Retrieves a book by ISBN (if found in database).
+        /// Note: For external lookups to services like OpenLibrary, implement a separate service.
+        /// </summary>
+        public async Task<Models.Book?> GetBookByISBNAsync(string isbn)
         {
-            var UpdatedAt = DateTime.UtcNow;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(isbn))
+                {
+                    _logger.LogWarning("Empty ISBN provided for lookup");
+                    return null;
+                }
+
+                // Clean the ISBN
+                var cleanIsbn = isbn.Replace("-", "").Replace(" ", "").Trim();
+
+                return await _context.Books
+                    .Include(b => b.User)
+                    .Include(b => b.Shelf)
+                    .FirstOrDefaultAsync(b => b.ISBN != null && b.ISBN.Replace("-", "").Replace(" ", "") == cleanIsbn && b.IsActive);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving book by ISBN: {ISBN}", isbn);
+                throw;
+            }
         }
 
-        public bool IsValidISBNAsync(string isbn)
+        /// <summary>
+        /// Retrieves all books owned by a specific user.
+        /// </summary>
+        public async Task<IEnumerable<Models.Book>> GetBooksByUserAsync(string userId)
         {
-            if (string.IsNullOrEmpty(isbn))
-                return false;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    _logger.LogWarning("Empty user ID provided for book lookup");
+                    return Enumerable.Empty<Models.Book>();
+                }
 
-            // Basic ISBN validation (you can make this more sophisticated)
-            var cleanISBN = isbn.Replace("-", "").Replace(" ", "");
-            return cleanISBN.Length == 10 || cleanISBN.Length == 13;
-
-        }
-
-        public Task<Models.Book?> CreateBookAsync(string title, string author, string isbn, DateTime publishedDate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Models.Book?> UpdateBookAsync(Models.Book book)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Models.Book?> GetBookByISBNAsync(string isbn)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Models.Book>> GetBooksByUserAsync(string userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<IEnumerable<Models.Book>> IBookService.GetAllBooksAsync()
-        {
-            throw new NotImplementedException();
+                return await _context.Books
+                    .Where(b => b.UserId == userId && b.IsActive)
+                    .OrderByDescending(b => b.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving books for user: {UserId}", userId);
+                throw;
+            }
         }
     }
 }

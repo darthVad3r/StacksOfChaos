@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using SOCApi.Configuration;
 using SOCApi.Services.Validation;
 using SOCApi.Services.Password;
+using SOCApi.Services.Email;
 using SOCApi.Models;
 
 namespace SOCApi.Services.User
@@ -10,17 +13,26 @@ namespace SOCApi.Services.User
         private readonly UserManager<Models.User> _userManager;
         private readonly IUserRetrievalService _userRetrievalService;
         private readonly IPasswordManagementService _passwordManagementService;
+        private readonly IEmailSender _emailSender;
+        private readonly IEmailTemplateProvider _emailTemplateProvider;
+        private readonly EmailSettings _emailSettings;
         private readonly ILogger<UserService> _logger;
 
         public UserService(
             UserManager<Models.User> userManager, 
             IUserRetrievalService userRetrievalService,
             IPasswordManagementService passwordManagementService,
+            IEmailSender emailSender,
+            IEmailTemplateProvider emailTemplateProvider,
+            IOptions<EmailSettings> emailSettings,
             ILogger<UserService> logger)
         {
             _userManager = userManager;
             _userRetrievalService = userRetrievalService;
             _passwordManagementService = passwordManagementService;
+            _emailSender = emailSender;
+            _emailTemplateProvider = emailTemplateProvider;
+            _emailSettings = emailSettings.Value;
             _logger = logger;
         }
 
@@ -64,6 +76,8 @@ namespace SOCApi.Services.User
             
             if (result.Succeeded)
             {
+                // Generate email confirmation token and send confirmation email
+                await SendEmailConfirmationAsync(user);
                 return user;
             }
             
@@ -89,6 +103,42 @@ namespace SOCApi.Services.User
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Error checking username availability", ex);
+            }
+        }
+
+        private async Task SendEmailConfirmationAsync(Models.User user)
+        {
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                
+                // Use configurable BaseUrl from EmailSettings
+                var baseUrl = _emailSettings.BaseUrl.TrimEnd('/');
+                var confirmationLink = $"{baseUrl}/api/account/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+                
+                // Prepare template variables
+                var templateVariables = new Dictionary<string, string>
+                {
+                    { "RecipientName", user.FirstName ?? user.UserName ?? "User" },
+                    { "ConfirmationLink", confirmationLink }
+                };
+                
+                // Get rendered email template
+                var emailBody = await _emailTemplateProvider.GetTemplateAsync("ConfirmEmail", templateVariables);
+
+                await _emailSender.SendEmailAsync(
+                    user.Email ?? string.Empty,
+                    "Confirm your email address",
+                    user.FirstName ?? user.UserName ?? "User",
+                    emailBody
+                );
+
+                _logger.LogInformation("Confirmation email sent to {Email}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send confirmation email to {Email}", user.Email);
+                // Don't throw - we don't want email failures to prevent registration
             }
         }
 
